@@ -48,10 +48,19 @@ squareUI = const [ uiScroll ]
 
 sortedUI :: s -> [Widget Name]
 sortedUI = const [ uiScroll ]
-    where ui = hBox swatches
-          rowVals = [ [ c * 36 + r + 16 | r <- [0..35] ] | c <- [0..5] ]
-          swatches = map ( vBox . swatchSeries 5 1 ) rowVals
-          uiScroll = viewport Swatches Both $ ui
+    where rgbVals  = [ [ c * 36 + r + 16 | r <- [0..35] ] | c <- [0..5] ]
+          rgbSwts  = map ( vBox . swatchSeries 5 1 ) rgbVals
+          rgbLbls  = map ( vBox . labelSeries 5 1 ) rgbVals
+          rgb      = hBox . shuffleIn rgbLbls $ rgbSwts
+          ansVals  = [0..15]
+          ansSwts  = vBox . swatchSeries 5 1 $ ansVals
+          ansLbls  = vBox . labelSeries 5 1 $ ansVals
+          ans      = hBox [ ansLbls, ansSwts ]
+          greyVals = [232..255]
+          greySwts = vBox . swatchSeries 5 1 $ greyVals
+          greyLbls = vBox . labelSeries 5 1 $ greyVals
+          greyScl  = hBox [ greyLbls, greySwts ]
+          uiScroll = viewport Swatches Both . hBox $ [rgb, greyScl, ans]
 
 ---------------------------------------------------------------------
 -- M.Named widgets

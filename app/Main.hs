@@ -10,7 +10,7 @@ import Brick.Main           ( App (..)
                             , defaultMain )
 
 app :: App () e Name
-app = App { appDraw         = const drawUI
+app = App { appDraw         = drawUI
           , appChooseCursor = neverShowCursor
           , appHandleEvent  = mngEvent
           , appStartEvent   = return

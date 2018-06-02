@@ -34,51 +34,74 @@ import Graphics.Vty         ( Color (..)
 ---------------------------------------------------------------------
 -- UI renderer
 
-drawUI :: [Widget Name]
-drawUI = [ uiScroll ]
-    where ui       = vBox . shuffleIn codes $ swatches
-          values   = [ [ 16 * r + c | c <- [0..15] ] | r <- [0..15] ]
-          swatches = map colorValues values
-          codes    = map ( numberValues 5 ) values
+drawUI :: s -> [Widget Name]
+-- ^Take the current program state and generate a list of widgets.
+-- Currently is independent of state and just draws rows of labels
+-- and color swatches.
+drawUI = const [ uiScroll ]
+    where ui       = vBox . shuffleIn labels $ swatches
+          rowVals  = [ [ 16 * r + c | c <- [0..15] ] | r <- [0..15] ]
+          swatches = map ( rowOfSwatches 5 1 ) rowVals
+          labels    = map ( rowOfLabels 5 1 ) rowVals
           uiScroll = viewport Swatches Both $ ui
 
 ---------------------------------------------------------------------
 -- M.Named widgets
 
-blkSep :: Widget Name
-blkSep = withAttr "csep" . str $ " "
+separator :: Int -> Widget Name
+-- ^Spacing widget with a given width used to separate swatches.
+separator w = withAttr "spacer" . str . replicate w $ ' '
 
-clrBlock :: Widget Name
-clrBlock = str . replicate 5 $ ' '
+swatch :: Int -> Widget Name
+-- ^Reserved line area that will be filled with a color having a
+-- given width.
+swatch w = str . replicate w $ ' '
 
 ---------------------------------------------------------------------
 -- Widget contructors
 
-colorValues :: [Int] -> Widget Name
-colorValues r = hBox . intersperse blkSep $ clrs
-    where clrs = map ( \ x -> withAttr ( attrName . show $ x ) clrBlock ) r
+rowOfSwatches :: Int -> Int -> [Int] -> Widget Name
+-- ^Row of swatches constructed from a list of color values. Each
+-- swatch has the width cw and they are separated by sw spaces.
+rowOfSwatches cw sw vs = hBox . intersperse sep $ clrs
+    where clrs = map ( \ x -> withAttr ( attrName . show $ x ) area ) vs
+          area = swatch cw
+          sep  = separator sw
 
-numberValues :: Int -> [Int] -> Widget Name
-numberValues w r = hBox . intersperse blkSep $ nums
-    where fmt  = hLimit w . hCenter . str . show
-          nums = map ( withAttr "vsep" . fmt ) r
+rowOfLabels :: Int -> Int -> [Int] -> Widget Name
+-- ^Row of numbers used to annotate the swatches where each number
+-- is centered in a horizontal space of a fixed width nw and is
+-- separated from the adjacent number by sw spaces.
+rowOfLabels nw sw ns = hBox . intersperse sep $ nums
+    where fmt  = hLimit nw . hCenter . str . show
+          nums = map ( withAttr "label" . fmt ) ns
+          sep  = separator sw
 
 ---------------------------------------------------------------------
 -- Attribute map
 
 theMap :: AttrMap
-theMap = attrMap defAttr $ clrsISO ++ clrs240 ++ clrsDisp
-    where clrs240  = [ ( attrName . show $ n
-                       , white `on` Color240 (n - 16) ) | n <- [16..255] ]
-          clrsISO  = [ ( attrName . show $ n
-                       , white `on` ISOColor n ) | n <- [0..15] ]
-          clrsDisp = [ ( "csep", black `on` black )
-                     , ( "vsep", withStyle ( white `on` black ) bold ) ]
+-- ^Attribute map. This is divided into two main parts. The first are
+-- all the color values, which are divided into the 8 ANSI colors and
+-- their 8 bold versions, which take values 0--15, and the full RGB
+-- set that ranges from 16--255. The greyscale colors are in the
+-- range 232--255. Thes attributes are used to color on-screen
+-- swatches. The second part of the map contains attributes for color
+-- labels and separators between the colored swatches.
+theMap = attrMap defAttr $ clrsANSI ++ clrsRGB ++ clrsDisp
+    where clrsRGB  = [ ( attrName . show $ n
+                       , black `on` Color240 (n - 16) ) | n <- [16..255] ]
+          clrsANSI = [ ( attrName . show $ n
+                       , black `on` ISOColor n ) | n <- [0..15] ]
+          clrsDisp = [ ( "spacer", black `on` black )
+                     , ( "label", withStyle ( white `on` black ) bold ) ]
 
 ---------------------------------------------------------------------
 -- Helper functions
 
 shuffleIn :: [a] -> [a] -> [a]
+-- ^Evenly shuffles two lists together into a new list with the
+-- combined values.
 shuffleIn [] ys         = ys
 shuffleIn xs []         = xs
 shuffleIn (x:xs) (y:ys) = x:y:( shuffleIn xs ys )

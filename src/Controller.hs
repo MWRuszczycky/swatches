@@ -5,17 +5,17 @@ module Controller
     ) where
 
 import Types          ( Name (..) )
-import Brick.Types    ( BrickEvent (..)
+import Graphics.Vty   ( Event (..)
+                      , Key (..) )
+import Brick          ( BrickEvent (..)
                       , EventM
-                      , Next )
-import Brick.Main     ( ViewportScroll
+                      , Next
+                      , ViewportScroll
                       , viewportScroll
                       , vScrollBy
                       , hScrollBy
                       , halt
                       , continue )
-import Graphics.Vty   ( Event (..)
-                      , Key (..) )
 
 mngEvent :: () -> BrickEvent Name e -> EventM Name ( Next () )
 -- ^Manages events, which are presently just for scrolling around in

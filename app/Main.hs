@@ -3,15 +3,15 @@
 import System.Posix.Env     ( putEnv )
 import System.Environment   ( getArgs )
 import Types                ( Name (..) )
-import Controller           ( mngEvent)
+import Controller           ( mngEvent )
 import Viewer               ( squareUI
                             , sortedUI
                             , theMap
                             , usage )
-import Brick.Main           ( App (..)
+import Brick                ( App (..)
                             , neverShowCursor
-                            , defaultMain )
-import Brick.Types          ( Widget )
+                            , defaultMain
+                            , Widget )
 
 main :: IO ()
 main = do

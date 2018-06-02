@@ -9,13 +9,20 @@ module Viewer
 
 import Data.List            ( intersperse
                             , intercalate )
-import Brick.Util           ( on )
 import Types                ( Name (..) )
-import Brick.Types          ( Widget
-                            , ViewportType (..) )
 import Brick.Widgets.Center ( center
-                            , hCenter)
-import Brick.Widgets.Core   ( str
+                            , hCenter )
+import Graphics.Vty         ( Color (..)
+                            , withStyle
+                            , bold
+                            , white
+                            , black
+                            , defAttr )
+import Brick                ( Widget
+                            , ViewportType (..)
+                            , AttrMap
+                            , on
+                            , str
                             , withAttr
                             , hBox
                             , vBox
@@ -23,16 +30,9 @@ import Brick.Widgets.Core   ( str
                             , fill
                             , vLimit
                             , viewport
-                            , cropToContext )
-import Brick.AttrMap        ( AttrMap
+                            , cropToContext
                             , attrMap
                             , attrName )
-import Graphics.Vty         ( Color (..)
-                            , withStyle
-                            , bold
-                            , white
-                            , black
-                            , defAttr )
 
 ---------------------------------------------------------------------
 -- UI renderer

@@ -6,11 +6,27 @@ import Types                ( Name (..) )
 import Controller           ( mngEvent)
 import Viewer               ( squareUI
                             , sortedUI
-                            , theMap )
+                            , theMap
+                            , usage )
 import Brick.Main           ( App (..)
                             , neverShowCursor
                             , defaultMain )
 import Brick.Types          ( Widget )
+
+main :: IO ()
+main = do
+    putEnv "TERM=xterm-256color"
+    args <- getArgs
+    let cmd = if null args then "square" else head args
+    case lookup cmd cmdHub of
+         Just c  -> c
+         Nothing -> putStrLn . concat $ [ "unrecognized command\n"
+                                        , "try: swatches help" ]
+
+cmdHub :: [ (String, IO ()) ]
+cmdHub = [ ( "square", defaultMain ( makeApp squareUI ) () )
+         , ( "sorted", defaultMain ( makeApp sortedUI ) () )
+         , ( "help"  , usage ) ]
 
 makeApp :: ( () -> [Widget Name] ) -> App () e Name
 makeApp f = App { appDraw         = f
@@ -18,13 +34,3 @@ makeApp f = App { appDraw         = f
                 , appHandleEvent  = mngEvent
                 , appStartEvent   = return
                 , appAttrMap      = const theMap }
-
-main :: IO ()
-main = do
-    putEnv "TERM=xterm-256color"
-    args <- getArgs
-    let app = case args of
-                   ("square":_) -> makeApp squareUI
-                   ("sorted":_) -> makeApp sortedUI
-                   _            -> makeApp squareUI
-    defaultMain app ()

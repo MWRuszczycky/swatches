@@ -3,10 +3,12 @@
 module Viewer
     ( squareUI
     , sortedUI
+    , usage
     , theMap
     ) where
 
-import Data.List            ( intersperse )
+import Data.List            ( intersperse
+                            , intercalate )
 import Brick.Util           ( on )
 import Types                ( Name (..) )
 import Brick.Types          ( Widget
@@ -112,6 +114,16 @@ theMap = attrMap defAttr $ clrsANSI ++ clrsRGB ++ clrsDisp
                        , black `on` ISOColor n ) | n <- [0..15] ]
           clrsDisp = [ ( "spacer", black `on` black )
                      , ( "label", withStyle ( white `on` black ) bold ) ]
+
+---------------------------------------------------------------------
+-- Usage information
+
+usage :: IO ()
+usage = putStrLn . intercalate "\n" $ helpStr
+    where helpStr = [ "Swatches"
+                    , "Displays the 256 colors available in the terminal."
+                    , "   swatches [square] : display a 16 x 16 unsorted grid"
+                    , "   swatches sorted   : display sorted colors" ]
 
 ---------------------------------------------------------------------
 -- Helper functions

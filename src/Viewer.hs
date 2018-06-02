@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Viewer
-    ( drawUI
+    ( squareUI
+    , sortedUI
     , theMap
     ) where
 
@@ -34,15 +35,22 @@ import Graphics.Vty         ( Color (..)
 ---------------------------------------------------------------------
 -- UI renderer
 
-drawUI :: s -> [Widget Name]
+squareUI :: s -> [Widget Name]
 -- ^Take the current program state and generate a list of widgets.
 -- Currently is independent of state and just draws rows of labels
 -- and color swatches.
-drawUI = const [ uiScroll ]
+squareUI = const [ uiScroll ]
     where ui       = vBox . shuffleIn labels $ swatches
           rowVals  = [ [ 16 * r + c | c <- [0..15] ] | r <- [0..15] ]
-          swatches = map ( rowOfSwatches 5 1 ) rowVals
-          labels    = map ( rowOfLabels 5 1 ) rowVals
+          swatches = map ( hBox . swatchSeries 5 1 ) rowVals
+          labels   = map ( hBox . labelSeries 5 1 ) rowVals
+          uiScroll = viewport Swatches Both $ ui
+
+sortedUI :: s -> [Widget Name]
+sortedUI = const [ uiScroll ]
+    where ui = hBox swatches
+          rowVals = [ [ c * 36 + r + 16 | r <- [0..35] ] | c <- [0..5] ]
+          swatches = map ( vBox . swatchSeries 5 1 ) rowVals
           uiScroll = viewport Swatches Both $ ui
 
 ---------------------------------------------------------------------
@@ -60,19 +68,19 @@ swatch w = str . replicate w $ ' '
 ---------------------------------------------------------------------
 -- Widget contructors
 
-rowOfSwatches :: Int -> Int -> [Int] -> Widget Name
--- ^Row of swatches constructed from a list of color values. Each
--- swatch has the width cw and they are separated by sw spaces.
-rowOfSwatches cw sw vs = hBox . intersperse sep $ clrs
+swatchSeries :: Int -> Int -> [Int] -> [Widget Name]
+-- ^List of swatch widgets constructed from a list of color values.
+-- Each swatch has the width cw and they are separated by sw spaces.
+swatchSeries cw sw vs = intersperse sep $ clrs
     where clrs = map ( \ x -> withAttr ( attrName . show $ x ) area ) vs
           area = swatch cw
           sep  = separator sw
 
-rowOfLabels :: Int -> Int -> [Int] -> Widget Name
--- ^Row of numbers used to annotate the swatches where each number
+labelSeries :: Int -> Int -> [Int] -> [Widget Name]
+-- ^List of numbers used to annotate the swatches where each number
 -- is centered in a horizontal space of a fixed width nw and is
 -- separated from the adjacent number by sw spaces.
-rowOfLabels nw sw ns = hBox . intersperse sep $ nums
+labelSeries nw sw ns = intersperse sep $ nums
     where fmt  = hLimit nw . hCenter . str . show
           nums = map ( withAttr "label" . fmt ) ns
           sep  = separator sw

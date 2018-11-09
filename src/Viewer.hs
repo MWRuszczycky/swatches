@@ -119,11 +119,11 @@ theMap = attrMap defAttr $ clrsANSI ++ clrsRGB ++ clrsDisp
 -- Usage information
 
 usage :: IO ()
-usage = putStrLn . intercalate "\n" $ helpStr
+usage = putStrLn . unlines $ helpStr
     where helpStr = [ "Swatches"
                     , "Displays the 256 colors available in the terminal."
-                    , "   swatches [square] : display a 16 x 16 unsorted grid"
-                    , "   swatches sorted   : display sorted colors" ]
+                    , "   swatches           : display a 16 x 16 unsorted grid"
+                    , "   swatches --stacked : display sorted colors" ]
 
 ---------------------------------------------------------------------
 -- Helper functions

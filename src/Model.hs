@@ -3,19 +3,19 @@ module Model
     ) where
 
 import Types  ( RGBIndex     (..)
+              , BasicIndex   (..)
+              , GreyIndex    (..)
+              , ShadeOfColor (..)
               , RGB          (..)
               , Color        (..)
               , Palette      (..)
-              , GreyIndex    (..)
-              , ShadeOfColor (..)
-              , Ansi         (..)
               , Colorable    (..) )
 
 ---------------------------------------------------------------------
 -- color values
 
 palette256 :: Palette
-palette256 = paletteAnsi ++ palette240 ++ paletteGreys
+palette256 = palette16 ++ palette240 ++ paletteGreys
 
 palette240 :: Palette
 palette240 = map toColor cs
@@ -26,8 +26,8 @@ paletteGreys :: Palette
 paletteGreys = map toColor cs
     where cs = [ GS0 .. GS23 ]
 
-paletteAnsi :: Palette
-paletteAnsi = map toColor cs
+palette16 :: Palette
+palette16 = map toColor cs
     where cs = [ Black .. White ]
 
 ---------------------------------------------------------------------

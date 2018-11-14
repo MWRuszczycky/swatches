@@ -7,7 +7,7 @@ module Types
     , RGBIndex     (..)
     , GreyIndex    (..)
     , ShadeOfColor (..)
-    , Ansi         (..)
+    , BasicIndex   (..)
     , Setup        (..)
     , Colorable    (..)
     ) where
@@ -96,13 +96,15 @@ instance Colorable GreyIndex where
               z = T.Color240 . fromIntegral $ c - 16
 
 ---------------------------------------------------------------------
--- Ansi colors and their bold version
+-- Basic 4-bit colors
 
-data Ansi= Black | Maroon | Green | Olive  | Navy | Purple  | Teal | Silver |
-           Grey  | Red    | Lime  | Yellow | Blue | Fuchsia | Aqua | White
-           deriving ( Eq, Show, Enum )
+data BasicIndex = Black | Maroon  | Green | Olive  |
+                  Navy  | Purple  | Teal  | Silver |
+                  Grey  | Red     | Lime  | Yellow |
+                  Blue | Fuchsia | Aqua | White
+                  deriving ( Eq, Show, Enum )
 
-instance Colorable Ansi where
+instance Colorable BasicIndex where
     toColor x = Color (encode x) (toRGB x) (go x)
         where go            = T.ISOColor . fromIntegral . encode
               toRGB Black   = RGB   0   0   0

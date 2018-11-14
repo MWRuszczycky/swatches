@@ -14,10 +14,18 @@ module Types
 import Numeric ( showHex )
 
 -- =============================================================== --
+-- State
 
 data Name = Swatches deriving ( Ord, Show, Eq )
 
 data Mode = Square | Stacked | Help deriving ( Eq, Show )
+
+data Setup = Setup { mode     :: Mode
+                   , terminal :: String
+                   }
+
+-- =============================================================== --
+-- Color
 
 data RGB = RGB { red   :: Int
                , green :: Int
@@ -30,10 +38,6 @@ instance Show RGB where
                    | x < 16    = '0' : showHex x []
                    | x < 256   = showHex x []
                    | otherwise = "ff"
-
-data Setup = Setup { mode     :: Mode
-                   , terminal :: String
-                   }
 
 class Colorable a where
     toRGB  :: a -> RGB

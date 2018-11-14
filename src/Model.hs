@@ -4,26 +4,38 @@ module Model
 
 import Types  ( RGBIndex     (..)
               , RGB          (..)
+              , Color        (..)
+              , Palette      (..)
               , GreyIndex    (..)
               , ShadeOfColor (..)
               , ShadeOfGrey  (..)
               , Ansi         (..)
               , Colorable    (..) )
+
 ---------------------------------------------------------------------
 -- color values
 
-rgbIndices :: [RGBIndex]
-rgbIndices = [ RGBIndex r g b | r <- vs, g <- vs, b <- vs ]
-    where vs = [ CS0 .. CS5 ]
+palette256 :: Palette
+palette256 = paletteAnsi ++ palette240 ++ paletteGreys
 
-greyIndices :: [ GreyIndex ]
-greyIndices = map GreyIndex [ GS0 .. GS23 ]
+palette240 :: Palette
+palette240 = map toColor cs
+    where cs = [ RGBIndex r g b | r <- vs, g <- vs, b <- vs ]
+          vs = [ CS0 .. CS5 ]
 
-ansiIndices :: [ Ansi ]
-ansiIndices = [ Black .. White ]
+paletteGreys :: Palette
+paletteGreys = map toColor cs
+    where cs = map GreyIndex [ GS0 .. GS23 ]
 
--- rgbToHSV :: RGB -> HSV
--- rgbToHSV (RGB r g b) =
+paletteAnsi :: Palette
+paletteAnsi = map toColor cs
+    where cs = [ Black .. White ]
+
+---------------------------------------------------------------------
+-- HSV conversion
+
+rgbToHSV :: RGB -> (Int, Int, Int)
+rgbToHSV x = ( hue x, saturation x, value x)
 
 hue :: RGB -> Int
 hue (RGB r g b)

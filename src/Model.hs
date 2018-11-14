@@ -8,7 +8,6 @@ import Types  ( RGBIndex     (..)
               , Palette      (..)
               , GreyIndex    (..)
               , ShadeOfColor (..)
-              , ShadeOfGrey  (..)
               , Ansi         (..)
               , Colorable    (..) )
 
@@ -25,7 +24,7 @@ palette240 = map toColor cs
 
 paletteGreys :: Palette
 paletteGreys = map toColor cs
-    where cs = map GreyIndex [ GS0 .. GS23 ]
+    where cs = [ GS0 .. GS23 ]
 
 paletteAnsi :: Palette
 paletteAnsi = map toColor cs

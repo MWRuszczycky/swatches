@@ -7,7 +7,6 @@ module Types
     , RGBIndex     (..)
     , GreyIndex    (..)
     , ShadeOfColor (..)
-    , ShadeOfGrey  (..)
     , Ansi         (..)
     , Setup        (..)
     , Colorable    (..)
@@ -85,15 +84,13 @@ instance Colorable RGBIndex where
 ---------------------------------------------------------------------
 -- Greyscale colors
 
-data ShadeOfGrey = GS0  | GS1  | GS2  | GS3  | GS4  | GS5  | GS6  | GS7  |
-                   GS8  | GS9  | GS10 | GS11 | GS12 | GS13 | GS14 | GS15 |
-                   GS16 | GS17 | GS18 | GS19 | GS20 | GS21 | GS22 | GS23
-                   deriving ( Eq, Ord, Show, Enum )
-
-data GreyIndex = GreyIndex ShadeOfGrey deriving ( Eq, Show )
+data GreyIndex = GS0  | GS1  | GS2  | GS3  | GS4  | GS5  | GS6  | GS7  |
+                 GS8  | GS9  | GS10 | GS11 | GS12 | GS13 | GS14 | GS15 |
+                 GS16 | GS17 | GS18 | GS19 | GS20 | GS21 | GS22 | GS23
+                 deriving ( Eq, Ord, Show, Enum )
 
 instance Colorable GreyIndex where
-    toColor (GreyIndex x) = Color c (RGB v v v) z
+    toColor x = Color c (RGB v v v) z
         where c = 232 + fromEnum x
               v = 10 * fromEnum x + 8
               z = T.Color240 . fromIntegral $ c - 16

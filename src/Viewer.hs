@@ -36,18 +36,32 @@ import Model                ( palette256
 import Types                ( Setup (..), RGB (..), Color (..) )
 
 ---------------------------------------------------------------------
--- UI renderer
+-- interfaces
 
 routeView :: Setup -> [ Widget Name ]
 routeView = spectrum
 
 spectrum :: Setup -> [ Widget Name ]
 spectrum st = [ viewport Swatches Both ui ]
-    where uiLine c = swatch 3 c <+> separator 1 <+> swatchStr (testString st) c
-          ui       = vBox . map uiLine . hsvSort $ palette256
+    where ui   = vBox . map go . hsvSort $ palette256
+          go c = swatch 3 c
+                 <+> separator 3
+                 <+> swatchStr (testString st) c
+                 <+> separator 3
+                 <+> swatch 3 c
+                 <+> separator 3
+                 <+> hexCode st c
+                 <+> separator 1
+                 <+> ansiCode st c
 
 ---------------------------------------------------------------------
--- M.Named widgets
+-- widgets
+
+ansiCode :: Setup -> Color -> Widget Name
+ansiCode st = withAttr (visible st) . str . show . code
+
+hexCode :: Setup -> Color -> Widget Name
+hexCode st = withAttr (visible st) . str . show . rgb
 
 separator :: Int -> Widget Name
 -- ^Spacing widget with a given width used to separate swatches.
@@ -59,14 +73,17 @@ swatchStr s c = withAttr ( colorFG c ) . str $ s
 swatch :: Int -> Color -> Widget Name
 swatch w c = withAttr ( colorBG c ) . str . replicate w $ ' '
 
+---------------------------------------------------------------------
+-- Attributes
+
 colorFG :: Color -> AttrName
 colorFG = attrName . ('f':) . show . rgb
 
 colorBG :: Color -> AttrName
 colorBG = attrName . ('b':) . show . rgb
 
----------------------------------------------------------------------
--- Attribute map
+visible :: Setup -> AttrName
+visible setup = "fwhite" <> "bblack"
 
 theMap :: AttrMap
 theMap = attrMap defAttr . concat $
@@ -76,6 +93,11 @@ theMap = attrMap defAttr . concat $
               -- background color map: prefix hexcode with 'b'
             , [ (attrName . ('b':) . show . rgb $ c, bg . color $ c)
                     | c <- palette256 ]
+              -- base attributes
+            , [ ("fblack", fg black)
+              , ("fwhite", fg white)
+              , ("bblack", bg black)
+              , ("bwhite", bg white) ]
             ]
 
 ---------------------------------------------------------------------

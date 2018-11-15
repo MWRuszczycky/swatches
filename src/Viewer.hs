@@ -45,9 +45,9 @@ routeView :: Setup -> [ Widget Name ]
 routeView = spectrum
 
 spectrum :: Setup -> [ Widget Name ]
-spectrum st = [ vBox . map ( \ c -> swt c <+> tstr c ) $ palette256 ]
-    where tstr x = withAttr (attrName . show . rgb $ x) . str . testString $ st
-          swt  x = withAttr (attrName . show . rgb $ x) . swatch $ 3
+spectrum st = [ viewport Swatches Both ui ]
+    where uiLine c = swatch 3 c <+> separator 1 <+> swatchStr (testString st) c
+          ui       = vBox . map uiLine $ palette256
 
 ---------------------------------------------------------------------
 -- M.Named widgets
@@ -56,30 +56,11 @@ separator :: Int -> Widget Name
 -- ^Spacing widget with a given width used to separate swatches.
 separator w = withAttr "spacer" . str . replicate w $ ' '
 
-swatch :: Int -> Widget Name
--- ^Reserved line area that will be filled with a color having a
--- given width.
-swatch w = str . replicate w $ ' '
+swatchStr :: String -> Color -> Widget Name
+swatchStr s c = withAttr ( attrName . show . rgb $ c ) . str $ s
 
----------------------------------------------------------------------
--- Widget contructors
-
-swatchSeries :: Int -> Int -> [Int] -> [Widget Name]
--- ^List of swatch widgets constructed from a list of color values.
--- Each swatch has the width cw and they are separated by sw spaces.
-swatchSeries cw sw vs = intersperse sep $ clrs
-    where clrs = map ( \ x -> withAttr ( attrName . show $ x ) area ) vs
-          area = swatch cw
-          sep  = separator sw
-
-labelSeries :: Int -> Int -> [Int] -> [Widget Name]
--- ^List of numbers used to annotate the swatches where each number
--- is centered in a horizontal space of a fixed width nw and is
--- separated from the adjacent number by sw spaces.
-labelSeries nw sw ns = intersperse sep $ nums
-    where fmt  = hLimit nw . hCenter . str . show
-          nums = map ( withAttr "label" . fmt ) ns
-          sep  = separator sw
+swatch :: Int -> Color -> Widget Name
+swatch w c = withAttr ( attrName . show . rgb $ c ) . str . replicate w $ ' '
 
 ---------------------------------------------------------------------
 -- Attribute map

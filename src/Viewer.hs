@@ -7,35 +7,32 @@ module Viewer
     ) where
 
 import Data.List            ( intersperse
-                            , intercalate )
+                            , intercalate
+                            , sortOn      )
 import Types                ( Name (..) )
-import Brick.Widgets.Center ( center
-                            , hCenter )
-import Graphics.Vty         ( withStyle
-                            , bold
-                            , white
+import Graphics.Vty         ( withBackColor
                             , black
+                            , white
                             , defAttr )
 import Brick                ( Widget
                             , ViewportType (..)
                             , AttrMap
+                            , AttrName (..)
                             , (<+>)
-                            , on
+                            , fg
+                            , bg
                             , str
                             , withAttr
-                            , hBox
                             , vBox
-                            , hLimit
-                            , fill
-                            , vLimit
                             , viewport
-                            , cropToContext
                             , attrMap
                             , attrName )
 import Model                ( palette256
                             , palette240
                             , paletteGreys
-                            , palette16    )
+                            , palette16
+                            , hsvSort
+                            , rgbToHSV )
 import Types                ( Setup (..), RGB (..), Color (..) )
 
 ---------------------------------------------------------------------
@@ -47,7 +44,7 @@ routeView = spectrum
 spectrum :: Setup -> [ Widget Name ]
 spectrum st = [ viewport Swatches Both ui ]
     where uiLine c = swatch 3 c <+> separator 1 <+> swatchStr (testString st) c
-          ui       = vBox . map uiLine $ palette256
+          ui       = vBox . map uiLine . hsvSort $ palette256
 
 ---------------------------------------------------------------------
 -- M.Named widgets
@@ -57,18 +54,29 @@ separator :: Int -> Widget Name
 separator w = withAttr "spacer" . str . replicate w $ ' '
 
 swatchStr :: String -> Color -> Widget Name
-swatchStr s c = withAttr ( attrName . show . rgb $ c ) . str $ s
+swatchStr s c = withAttr ( colorFG c ) . str $ s
 
 swatch :: Int -> Color -> Widget Name
-swatch w c = withAttr ( attrName . show . rgb $ c ) . str . replicate w $ ' '
+swatch w c = withAttr ( colorBG c ) . str . replicate w $ ' '
+
+colorFG :: Color -> AttrName
+colorFG = attrName . ('f':) . show . rgb
+
+colorBG :: Color -> AttrName
+colorBG = attrName . ('b':) . show . rgb
 
 ---------------------------------------------------------------------
 -- Attribute map
 
 theMap :: AttrMap
-theMap = attrMap defAttr [ (name x, attr x) | x <- palette256 ]
-    where name = attrName . show . rgb
-          attr = on black . color
+theMap = attrMap defAttr . concat $
+            [ -- foreground color map: prefix hexcode with 'f'
+              [ (attrName . ('f':) . show . rgb $ c, fg . color $ c)
+                    | c <- palette256 ]
+              -- background color map: prefix hexcode with 'b'
+            , [ (attrName . ('b':) . show . rgb $ c, bg . color $ c)
+                    | c <- palette256 ]
+            ]
 
 ---------------------------------------------------------------------
 -- Usage information

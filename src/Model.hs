@@ -3,16 +3,19 @@ module Model
     , palette240
     , paletteGreys
     , palette16
+    , hsvSort
+    , rgbToHSV
     ) where
 
-import Types  ( RGBIndex     (..)
-              , BasicIndex   (..)
-              , GreyIndex    (..)
-              , ShadeOfColor (..)
-              , RGB          (..)
-              , Color        (..)
-              , Palette      (..)
-              , Colorable    (..) )
+import Data.List ( sortOn            )
+import Types     ( RGBIndex     (..)
+                 , BasicIndex   (..)
+                 , GreyIndex    (..)
+                 , ShadeOfColor (..)
+                 , RGB          (..)
+                 , Color        (..)
+                 , Palette      (..)
+                 , Colorable    (..) )
 
 ---------------------------------------------------------------------
 -- color values
@@ -32,6 +35,12 @@ paletteGreys = map toColor cs
 palette16 :: Palette
 palette16 = map toColor cs
     where cs = [ Black .. White ]
+
+---------------------------------------------------------------------
+-- Color sorting
+
+hsvSort :: Palette -> Palette
+hsvSort = reverse . sortOn ( ( \ (h,s,v) -> (s,v,h) ) . rgbToHSV . rgb )
 
 ---------------------------------------------------------------------
 -- HSV conversion
@@ -56,10 +65,11 @@ hue (RGB r g b)
 saturation :: RGB -> Int
 saturation (RGB r g b)
     | mx == 0   = 0
-    | otherwise = round $ dm / fromIntegral mx
+    | otherwise = round $ 100 * dm / fromIntegral mx
     where mx = maximum [r, g, b]
           mn = minimum [r, g, b]
           dm = fromIntegral $ mx - mn
 
 value :: RGB -> Int
-value (RGB r g b) = maximum [r, g, b]
+value (RGB r g b) = round $ 100 * mx / 256
+    where mx = fromIntegral . maximum $ [r, g, b]

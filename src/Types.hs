@@ -13,17 +13,18 @@ module Types
     ) where
 
 import qualified Graphics.Vty as T
-import Numeric ( showHex )
+import Numeric                     ( showHex )
 
 -- =============================================================== --
 -- State
 
 data Name = Swatches deriving ( Ord, Show, Eq )
 
-data Mode = Square | Stacked | Help deriving ( Eq, Show )
+data Mode = Square | Stacked | Spectrum | Help deriving ( Eq, Show )
 
-data Setup = Setup { mode     :: Mode
-                   , terminal :: String
+data Setup = Setup { mode       :: Mode
+                   , terminal   :: String
+                   , testString :: String
                    }
 
 -- =============================================================== --

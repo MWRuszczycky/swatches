@@ -1,5 +1,8 @@
 module Model
-    (
+    ( palette256
+    , palette240
+    , paletteGreys
+    , palette16
     ) where
 
 import Types  ( RGBIndex     (..)

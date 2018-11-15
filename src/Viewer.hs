@@ -1,9 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Viewer
-    ( squareUI
-    , sortedUI
-    , usage
+    ( usage
+    , routeView
     , theMap
     ) where
 
@@ -12,8 +11,7 @@ import Data.List            ( intersperse
 import Types                ( Name (..) )
 import Brick.Widgets.Center ( center
                             , hCenter )
-import Graphics.Vty         ( Color (..)
-                            , withStyle
+import Graphics.Vty         ( withStyle
                             , bold
                             , white
                             , black
@@ -21,6 +19,7 @@ import Graphics.Vty         ( Color (..)
 import Brick                ( Widget
                             , ViewportType (..)
                             , AttrMap
+                            , (<+>)
                             , on
                             , str
                             , withAttr
@@ -33,36 +32,22 @@ import Brick                ( Widget
                             , cropToContext
                             , attrMap
                             , attrName )
+import Model                ( palette256
+                            , palette240
+                            , paletteGreys
+                            , palette16    )
+import Types                ( Setup (..), RGB (..), Color (..) )
 
 ---------------------------------------------------------------------
 -- UI renderer
 
-squareUI :: s -> [Widget Name]
--- ^Take the current program state and generate a list of widgets.
--- Currently is independent of state and just draws rows of labels
--- and color swatches.
-squareUI = const [ uiScroll ]
-    where ui       = vBox . shuffleIn labels $ swatches
-          rowVals  = [ [ 16 * r + c | c <- [0..15] ] | r <- [0..15] ]
-          swatches = map ( hBox . swatchSeries 5 1 ) rowVals
-          labels   = map ( hBox . labelSeries 5 1 ) rowVals
-          uiScroll = viewport Swatches Both $ ui
+routeView :: Setup -> [ Widget Name ]
+routeView = spectrum
 
-sortedUI :: s -> [Widget Name]
-sortedUI = const [ uiScroll ]
-    where rgbVals  = [ [ c * 36 + r + 16 | r <- [0..35] ] | c <- [0..5] ]
-          rgbSwts  = map ( vBox . swatchSeries 5 1 ) rgbVals
-          rgbLbls  = map ( vBox . labelSeries 5 1 ) rgbVals
-          rgb      = hBox . shuffleIn rgbLbls $ rgbSwts
-          ansVals  = [0..15]
-          ansSwts  = vBox . swatchSeries 5 1 $ ansVals
-          ansLbls  = vBox . labelSeries 5 1 $ ansVals
-          ans      = hBox [ ansLbls, ansSwts ]
-          greyVals = [232..255]
-          greySwts = vBox . swatchSeries 5 1 $ greyVals
-          greyLbls = vBox . labelSeries 5 1 $ greyVals
-          greyScl  = hBox [ greyLbls, greySwts ]
-          uiScroll = viewport Swatches Both . hBox $ [rgb, greyScl, ans]
+spectrum :: Setup -> [ Widget Name ]
+spectrum st = [ vBox . map ( \ c -> swt c <+> tstr c ) $ palette256 ]
+    where tstr x = withAttr (attrName . show . rgb $ x) . str . testString $ st
+          swt  x = withAttr (attrName . show . rgb $ x) . swatch $ 3
 
 ---------------------------------------------------------------------
 -- M.Named widgets
@@ -100,20 +85,9 @@ labelSeries nw sw ns = intersperse sep $ nums
 -- Attribute map
 
 theMap :: AttrMap
--- ^Attribute map. This is divided into two main parts. The first are
--- all the color values, which are divided into the 8 ANSI colors and
--- their 8 bold versions, which take values 0--15, and the full RGB
--- set that ranges from 16--255. The greyscale colors are in the
--- range 232--255. Thes attributes are used to color on-screen
--- swatches. The second part of the map contains attributes for color
--- labels and separators between the colored swatches.
-theMap = attrMap defAttr $ clrsANSI ++ clrsRGB ++ clrsDisp
-    where clrsRGB  = [ ( attrName . show $ n
-                       , black `on` Color240 (n - 16) ) | n <- [16..255] ]
-          clrsANSI = [ ( attrName . show $ n
-                       , black `on` ISOColor n ) | n <- [0..15] ]
-          clrsDisp = [ ( "spacer", black `on` black )
-                     , ( "label", withStyle ( white `on` black ) bold ) ]
+theMap = attrMap defAttr [ (name x, attr x) | x <- palette256 ]
+    where name = attrName . show . rgb
+          attr = on black . color
 
 ---------------------------------------------------------------------
 -- Usage information

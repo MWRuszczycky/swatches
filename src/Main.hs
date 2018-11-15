@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import qualified System.Console.GetOpt as Opt
+import Control.Monad                          ( void              )
 import System.Posix.Env                       ( putEnv            )
 import System.Environment                     ( getArgs           )
 import Data.List                              ( foldl'            )
@@ -11,9 +12,8 @@ import Brick                                  ( App (..)
 import Types                                  ( Name  (..)
                                               , Setup (..)
                                               , Mode  (..)        )
-import Controller                             ( mngEvent          )
-import Viewer                                 ( squareUI
-                                              , sortedUI
+import Controller                             ( routeEvent        )
+import Viewer                                 ( routeView
                                               , theMap
                                               , usage             )
 
@@ -23,36 +23,32 @@ main = getSetup <$> getArgs >>= either ( putStrLn ) ( runSwatches )
 runSwatches :: Setup -> IO ()
 runSwatches setup = do
     putEnv $ "TERM=" ++ terminal setup
-    cmdHub . mode $ setup
-
-cmdHub :: Mode -> IO ()
-cmdHub Square  = defaultMain ( makeApp squareUI ) ()
-cmdHub Stacked = defaultMain ( makeApp sortedUI ) ()
-cmdHub Help    = usage
+    void . defaultMain theApp $ setup
 
 ---------------------------------------------------------------------
 
-makeApp :: ( () -> [Widget Name] ) -> App () e Name
-makeApp f = App { appDraw         = f
-                , appChooseCursor = neverShowCursor
-                , appHandleEvent  = mngEvent
-                , appStartEvent   = return
-                , appAttrMap      = const theMap }
+theApp :: App Setup e Name
+theApp = App { appDraw         = routeView
+             , appChooseCursor = neverShowCursor
+             , appHandleEvent  = routeEvent
+             , appStartEvent   = return
+             , appAttrMap      = const theMap }
 
 ---------------------------------------------------------------------
 
 setupDef :: Setup
-setupDef = Setup { mode     = Square
-                 , terminal = "xterm-256color"
+setupDef = Setup { mode       = Spectrum
+                 , terminal   = "xterm-256color"
+                 , testString = "abcdefghijklmnopqrstuvwxyz0123456789"
                  }
 
 options :: [ Opt.OptDescr (Setup -> Setup) ]
 options = [ Opt.Option "t" ["terminal"]
                 ( Opt.ReqArg ( \ arg s -> s { terminal = arg } ) "TERMINAL" )
                 "Set the terminal (defualt is xterm-256-color)"
-          , Opt.Option "s" ["stacked"]
-                ( Opt.NoArg ( \ s -> s { mode = Stacked } ) )
-                "Display colors stacked along the green coordinate."
+          , Opt.Option "m" ["mode"]
+                ( Opt.NoArg ( \ s -> s { mode = Spectrum } ) )
+                "Set the display mode."
           , Opt.Option "h" ["help"]
                 ( Opt.NoArg ( \ s -> s { mode = Help } ) )
                 "Display usage information."

@@ -16,6 +16,7 @@ import Types     ( RGBIndex     (..)
                  , RGB          (..)
                  , Color        (..)
                  , Palette      (..)
+                 , SortCode     (..)
                  , Colorable    (..) )
 
 ---------------------------------------------------------------------
@@ -43,7 +44,7 @@ palette16 = map toColor cs
 ---------------------------------------------------------------------
 -- Palette sorting
 
-sortPalette :: String -> Palette -> Palette
+sortPalette :: SortCode -> Palette -> Palette
 sortPalette "hsv"  = reverse . sortOn ( rgbToHSV . rgb )
 sortPalette "hvs"  = reverse . sortOn ( (\(h,s,v) -> (h,v,s)) . rgbToHSV . rgb )
 sortPalette "shv"  = reverse . sortOn ( (\(h,s,v) -> (s,h,v)) . rgbToHSV . rgb )

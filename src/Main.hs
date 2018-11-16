@@ -24,6 +24,7 @@ runSwatches :: Setup -> IO ()
 runSwatches setup = do
     putEnv $ "TERM=" ++ terminal setup
     print . mode $ setup
+    print . compressed $ setup
     void . defaultMain theApp $ setup
 
 ---------------------------------------------------------------------
@@ -41,6 +42,7 @@ setupDef :: Setup
 setupDef = Setup { mode       = Spectrum "svh"
                  , terminal   = "xterm-256color"
                  , testString = "abcdefghijklmnopqrstuvwxyz0123456789"
+                 , compressed = False
                  }
 
 options :: [ Opt.OptDescr (Setup -> Setup) ]
@@ -50,6 +52,12 @@ options = [ Opt.Option "t" ["terminal"]
           , Opt.Option "m" ["mode"]
                 ( Opt.ReqArg ( \ arg s -> s { mode = Spectrum arg } ) "MODE" )
                 "Set the display mode."
+          , Opt.Option "s" ["string"]
+                ( Opt.ReqArg ( \ arg s -> s { testString = arg } ) "STRING" )
+                "Set the test string."
+          , Opt.Option "c" ["compressed"]
+                ( Opt.NoArg ( \ s -> s { compressed = True } ) )
+                "Display colors and ANSI colors with minimal space."
           , Opt.Option "h" ["help"]
                 ( Opt.NoArg ( \ s -> s { mode = Help } ) )
                 "Display usage information."

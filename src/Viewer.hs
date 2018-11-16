@@ -11,20 +11,23 @@ import Data.List            ( intersperse
                             , sortOn            )
 import Types                ( Name         (..) )
 import Graphics.Vty         ( withBackColor
+                            , withForeColor
                             , black
                             , white
                             , defAttr           )
+import Brick.Widgets.Center ( hCenter           )
 import Brick                ( Widget
                             , ViewportType (..)
                             , AttrMap
                             , AttrName     (..)
                             , (<+>), (<=>)
-                            , fg
-                            , bg
+                            , fg, bg
                             , str
-                            , withAttr
-                            , vBox
+                            , hLimit
+                            , vBox, hBox
                             , viewport
+                            , withAttr
+                            , withDefAttr
                             , attrMap
                             , attrName          )
 import Model                ( palette256
@@ -36,6 +39,7 @@ import Model                ( palette256
 import Types                ( Mode         (..)
                             , Setup        (..)
                             , RGB          (..)
+                            , SortCode     (..)
                             , Color        (..) )
 
 ---------------------------------------------------------------------
@@ -43,32 +47,35 @@ import Types                ( Mode         (..)
 
 routeView :: Setup -> [ Widget Name ]
 routeView st = case mode st of
-                    Spectrum s -> spectrum (testString st) s
+                    Spectrum s -> if compressed st
+                                     then spectrumC s
+                                     else spectrum (testString st) s
                     otherwise  -> spectrum (testString st) "ansi"
 
-spectrum :: String -> String -> [ Widget Name ]
-spectrum tstStr sortStr = [ viewport Swatches Both ui ]
-    where ui240 = vBox . map go . sortPalette sortStr $ palette240
-          ui16  = vBox . map go $ palette16
-          ui    = ui16 <=> ui240
-          go c  = swatch 3 c
-                  <+> separator 3
-                  <+> swatchStr tstStr c
-                  <+> separator 3
-                  <+> swatch 3 c
-                  <+> separator 3
-                  <+> hexCode c
-                  <+> separator 1
-                  <+> ansiCode c
+spectrum :: String -> SortCode -> [ Widget Name ]
+spectrum s sc = [ viewport Swatches Both ui ]
+    where ui240 = vBox . map (specLine240 s) . sortPalette sc $ palette240
+          ui16  = vBox . map (specLine16 s) $ palette16
+          ui    = ui16 <=> separator 1 <=> ui240
+
+spectrumC :: SortCode -> [Widget Name]
+spectrumC sc = [ viewport Swatches Both ui ]
+    where ui = hBox [ label 3 (colorBG c) . show . code $ c
+                      | c <- palette16 ]
 
 ---------------------------------------------------------------------
 -- widgets
 
-ansiCode :: Color -> Widget Name
-ansiCode = withAttr visible . str . show . code
+label' :: Int -> (Color -> String) -> Color -> Widget Name
+label' w s c = withDefAttr "fwhite"
+               . withAttr (colorBG c)
+               . hLimit w
+               . hCenter
+               . str
+               . s $ c
 
-hexCode :: Color -> Widget Name
-hexCode = withAttr visible . str . show . rgb
+label :: Int -> AttrName -> String -> Widget Name
+label w a = withDefAttr "fwhite" . withAttr a . hLimit w . hCenter . str
 
 separator :: Int -> Widget Name
 -- ^Spacing widget with a given width used to separate swatches.
@@ -80,6 +87,28 @@ swatchStr s c = withAttr ( colorFG c ) . str $ s
 swatch :: Int -> Color -> Widget Name
 swatch w c = withAttr ( colorBG c ) . str . replicate w $ ' '
 
+specLine240 :: String -> Color -> Widget Name
+specLine240 s c = swatch 3 c
+                  <+> separator 3
+                  <+> swatchStr s c
+                  <+> separator 3
+                  <+> swatch 3 c
+                  <+> separator 3
+                  <+> label 8 "default" (show . rgb $ c)
+                  <+> separator 1
+                  <+> label 3  "default" (show . code $ c)
+
+specLine16 :: String -> Color -> Widget Name
+specLine16 s c = swatch 3 c
+                 <+> separator 3
+                 <+> swatchStr s c
+                 <+> separator 3
+                 <+> swatch 3 c
+                 <+> separator 3
+                 <+> label 9 "default" ( (++ "?") . show . rgb $ c )
+                 <+> separator 1
+                 <+> label 3 "default" (show . code $ c)
+
 ---------------------------------------------------------------------
 -- Attributes
 
@@ -88,9 +117,6 @@ colorFG = attrName . ('f':) . show . rgb
 
 colorBG :: Color -> AttrName
 colorBG = attrName . ('b':) . show . rgb
-
-visible :: AttrName
-visible = "fwhite" <> "bblack"
 
 theMap :: AttrMap
 theMap = attrMap defAttr . concat $
@@ -102,9 +128,7 @@ theMap = attrMap defAttr . concat $
                     | c <- palette256 ]
               -- base attributes
             , [ ("fblack", fg black)
-              , ("fwhite", fg white)
-              , ("bblack", bg black)
-              , ("bwhite", bg white) ]
+              , ("fwhite", fg white) ]
             ]
 
 ---------------------------------------------------------------------

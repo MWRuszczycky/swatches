@@ -4,6 +4,7 @@ module Types
     , Color        (..)
     , RGB          (..)
     , Palette      (..)
+    , SortCode     (..)
     , RGBIndex     (..)
     , GreyIndex    (..)
     , ShadeOfColor (..)
@@ -20,11 +21,16 @@ import Numeric                     ( showHex )
 
 data Name = Swatches deriving ( Ord, Show, Eq )
 
-data Mode = Square | Stacked | Spectrum String | Help deriving ( Eq, Show )
+data Mode = Square
+          | Stacked
+          | Spectrum String
+          | SpectrumC
+          | Help deriving ( Eq, Show )
 
 data Setup = Setup { mode       :: Mode
                    , terminal   :: String
                    , testString :: String
+                   , compressed :: Bool
                    }
 
 -- =============================================================== --
@@ -55,6 +61,8 @@ instance Show Color where
     show ( Color c r _ ) = "(" ++ show c ++ "," ++ show r ++ ")"
 
 type Palette = [Color]
+
+type SortCode = String
 
 ---------------------------------------------------------------------
 -- Colorable class: things that can be converted to colors

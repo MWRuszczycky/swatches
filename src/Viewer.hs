@@ -18,7 +18,7 @@ import Brick                ( Widget
                             , ViewportType (..)
                             , AttrMap
                             , AttrName     (..)
-                            , (<+>)
+                            , (<+>), (<=>)
                             , fg
                             , bg
                             , str
@@ -48,16 +48,18 @@ routeView st = case mode st of
 
 spectrum :: String -> String -> [ Widget Name ]
 spectrum tstStr sortStr = [ viewport Swatches Both ui ]
-    where ui   = vBox . map go . sortPalette sortStr $ palette256
-          go c = swatch 3 c
-                 <+> separator 3
-                 <+> swatchStr tstStr c
-                 <+> separator 3
-                 <+> swatch 3 c
-                 <+> separator 3
-                 <+> hexCode c
-                 <+> separator 1
-                 <+> ansiCode c
+    where ui240 = vBox . map go . sortPalette sortStr $ palette240
+          ui16  = vBox . map go $ palette16
+          ui    = ui16 <=> ui240
+          go c  = swatch 3 c
+                  <+> separator 3
+                  <+> swatchStr tstStr c
+                  <+> separator 3
+                  <+> swatch 3 c
+                  <+> separator 3
+                  <+> hexCode c
+                  <+> separator 1
+                  <+> ansiCode c
 
 ---------------------------------------------------------------------
 -- widgets

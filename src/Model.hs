@@ -1,6 +1,7 @@
 module Model
     ( palette256
     , palette240
+    , palette216
     , paletteGreys
     , palette16
     , sortPalette
@@ -21,10 +22,13 @@ import Types     ( RGBIndex     (..)
 -- Palettes
 
 palette256 :: Palette
-palette256 = palette16 ++ palette240 ++ paletteGreys
+palette256 = palette16 ++ palette240
 
 palette240 :: Palette
-palette240 = map toColor cs
+palette240 = palette216 ++ paletteGreys
+
+palette216 :: Palette
+palette216 = map toColor cs
     where cs = [ RGBIndex r g b | r <- vs, g <- vs, b <- vs ]
           vs = [ CS0 .. CS5 ]
 

@@ -8,16 +8,16 @@ module Viewer
 
 import Data.List            ( intersperse
                             , intercalate
-                            , sortOn      )
-import Types                ( Name (..) )
+                            , sortOn            )
+import Types                ( Name         (..) )
 import Graphics.Vty         ( withBackColor
                             , black
                             , white
-                            , defAttr )
+                            , defAttr           )
 import Brick                ( Widget
                             , ViewportType (..)
                             , AttrMap
-                            , AttrName (..)
+                            , AttrName     (..)
                             , (<+>)
                             , fg
                             , bg
@@ -26,42 +26,47 @@ import Brick                ( Widget
                             , vBox
                             , viewport
                             , attrMap
-                            , attrName )
+                            , attrName          )
 import Model                ( palette256
                             , palette240
                             , paletteGreys
                             , palette16
-                            , hsvSort
-                            , rgbToHSV )
-import Types                ( Setup (..), RGB (..), Color (..) )
+                            , sortPalette
+                            , rgbToHSV          )
+import Types                ( Mode         (..)
+                            , Setup        (..)
+                            , RGB          (..)
+                            , Color        (..) )
 
 ---------------------------------------------------------------------
 -- interfaces
 
 routeView :: Setup -> [ Widget Name ]
-routeView = spectrum
+routeView st = case mode st of
+                    Spectrum s -> spectrum (testString st) s
+                    otherwise  -> spectrum (testString st) "ansi"
 
-spectrum :: Setup -> [ Widget Name ]
-spectrum st = [ viewport Swatches Both ui ]
-    where ui   = vBox . map go . hsvSort $ palette256
+spectrum :: String -> String -> [ Widget Name ]
+spectrum tstStr sortStr = [ viewport Swatches Both ui ]
+    where ui   = vBox . map go . sortPalette sortStr $ palette256
           go c = swatch 3 c
                  <+> separator 3
-                 <+> swatchStr (testString st) c
+                 <+> swatchStr tstStr c
                  <+> separator 3
                  <+> swatch 3 c
                  <+> separator 3
-                 <+> hexCode st c
+                 <+> hexCode c
                  <+> separator 1
-                 <+> ansiCode st c
+                 <+> ansiCode c
 
 ---------------------------------------------------------------------
 -- widgets
 
-ansiCode :: Setup -> Color -> Widget Name
-ansiCode st = withAttr (visible st) . str . show . code
+ansiCode :: Color -> Widget Name
+ansiCode = withAttr visible . str . show . code
 
-hexCode :: Setup -> Color -> Widget Name
-hexCode st = withAttr (visible st) . str . show . rgb
+hexCode :: Color -> Widget Name
+hexCode = withAttr visible . str . show . rgb
 
 separator :: Int -> Widget Name
 -- ^Spacing widget with a given width used to separate swatches.
@@ -82,8 +87,8 @@ colorFG = attrName . ('f':) . show . rgb
 colorBG :: Color -> AttrName
 colorBG = attrName . ('b':) . show . rgb
 
-visible :: Setup -> AttrName
-visible setup = "fwhite" <> "bblack"
+visible :: AttrName
+visible = "fwhite" <> "bblack"
 
 theMap :: AttrMap
 theMap = attrMap defAttr . concat $

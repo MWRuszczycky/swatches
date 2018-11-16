@@ -23,6 +23,7 @@ main = getSetup <$> getArgs >>= either ( putStrLn ) ( runSwatches )
 runSwatches :: Setup -> IO ()
 runSwatches setup = do
     putEnv $ "TERM=" ++ terminal setup
+    print . mode $ setup
     void . defaultMain theApp $ setup
 
 ---------------------------------------------------------------------
@@ -37,7 +38,7 @@ theApp = App { appDraw         = routeView
 ---------------------------------------------------------------------
 
 setupDef :: Setup
-setupDef = Setup { mode       = Spectrum
+setupDef = Setup { mode       = Spectrum "svh"
                  , terminal   = "xterm-256color"
                  , testString = "abcdefghijklmnopqrstuvwxyz0123456789"
                  }
@@ -47,7 +48,7 @@ options = [ Opt.Option "t" ["terminal"]
                 ( Opt.ReqArg ( \ arg s -> s { terminal = arg } ) "TERMINAL" )
                 "Set the terminal (defualt is xterm-256-color)"
           , Opt.Option "m" ["mode"]
-                ( Opt.NoArg ( \ s -> s { mode = Spectrum } ) )
+                ( Opt.ReqArg ( \ arg s -> s { mode = Spectrum arg } ) "MODE" )
                 "Set the display mode."
           , Opt.Option "h" ["help"]
                 ( Opt.NoArg ( \ s -> s { mode = Help } ) )

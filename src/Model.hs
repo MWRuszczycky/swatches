@@ -3,7 +3,7 @@ module Model
     , palette240
     , paletteGreys
     , palette16
-    , hsvSort
+    , sortPalette
     , rgbToHSV
     ) where
 
@@ -18,7 +18,7 @@ import Types     ( RGBIndex     (..)
                  , Colorable    (..) )
 
 ---------------------------------------------------------------------
--- color values
+-- Palettes
 
 palette256 :: Palette
 palette256 = palette16 ++ palette240 ++ paletteGreys
@@ -37,10 +37,23 @@ palette16 = map toColor cs
     where cs = [ Black .. White ]
 
 ---------------------------------------------------------------------
--- Color sorting
+-- Palette sorting
 
-hsvSort :: Palette -> Palette
-hsvSort = reverse . sortOn ( ( \ (h,s,v) -> (s,v,h) ) . rgbToHSV . rgb )
+sortPalette :: String -> Palette -> Palette
+sortPalette "hsv"  = reverse . sortOn ( rgbToHSV . rgb )
+sortPalette "hvs"  = reverse . sortOn ( (\(h,s,v) -> (h,v,s)) . rgbToHSV . rgb )
+sortPalette "shv"  = reverse . sortOn ( (\(h,s,v) -> (s,h,v)) . rgbToHSV . rgb )
+sortPalette "svh"  = reverse . sortOn ( (\(h,s,v) -> (s,v,h)) . rgbToHSV . rgb )
+sortPalette "vsh"  = reverse . sortOn ( (\(h,s,v) -> (v,s,h)) . rgbToHSV . rgb )
+sortPalette "vhs"  = reverse . sortOn ( (\(h,s,v) -> (v,h,s)) . rgbToHSV . rgb )
+sortPalette "rgb"  = reverse . sortOn ( (\(RGB r g b) -> (r,g,b)) . rgb )
+sortPalette "rbg"  = reverse . sortOn ( (\(RGB r g b) -> (r,b,g)) . rgb )
+sortPalette "brg"  = reverse . sortOn ( (\(RGB r g b) -> (b,r,g)) . rgb )
+sortPalette "bgr"  = reverse . sortOn ( (\(RGB r g b) -> (b,g,r)) . rgb )
+sortPalette "grb"  = reverse . sortOn ( (\(RGB r g b) -> (g,r,b)) . rgb )
+sortPalette "gbr"  = reverse . sortOn ( (\(RGB r g b) -> (g,b,r)) . rgb )
+sortPalette "ansi" = sortOn code
+sortPalette _      = sortPalette "svh"
 
 ---------------------------------------------------------------------
 -- HSV conversion

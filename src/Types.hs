@@ -20,7 +20,7 @@ import Numeric                     ( showHex )
 
 data Name = Swatches deriving ( Ord, Show, Eq )
 
-data Mode = Square | Stacked | Spectrum | Help deriving ( Eq, Show )
+data Mode = Square | Stacked | Spectrum String | Help deriving ( Eq, Show )
 
 data Setup = Setup { mode       :: Mode
                    , terminal   :: String

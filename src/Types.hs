@@ -1,16 +1,20 @@
 module Types
-    ( Mode         (..)
-    , Name         (..)
-    , Color        (..)
-    , RGB          (..)
-    , Palette      (..)
-    , SortCode     (..)
-    , RGBIndex     (..)
-    , GreyIndex    (..)
-    , ShadeOfColor (..)
-    , BasicIndex   (..)
-    , Setup        (..)
-    , Colorable    (..)
+    ( -- State
+      Mode             (..)
+    , Name             (..)
+    , Setup            (..)
+    , SortCode         (..)
+    -- Color
+    , BasicColor       (..)
+    , ChannelIntensity (..)
+    , Color            (..)
+    , Colorable        (..) -- Class
+    , ColorCode        (..)
+    , GreyIntensity    (..)
+    , Palette          (..)
+    , RGB              (..)
+    , RGBChannel       (..)
+    , RGBColor         (..)
     ) where
 
 import qualified Graphics.Vty as T
@@ -21,21 +25,26 @@ import Numeric                     ( showHex )
 
 data Name = Swatches deriving ( Ord, Show, Eq )
 
-data Mode = Square
-          | Stacked
-          | Spectrum String
-          | SpectrumC
+-- |Display mode
+data Mode = Cube
+          | Spectrum
+          | Block
           | Help deriving ( Eq, Show )
 
-data Setup = Setup { mode       :: Mode
-                   , terminal   :: String
-                   , testString :: String
-                   , compressed :: Bool
+-- |Programmatic State
+data Setup = Setup { mode       :: Mode     -- Display mode
+                   , terminal   :: String   -- Terminal settings
+                   , testString :: String   -- Display string
+                   , sortCode   :: SortCode -- Color sorting code
                    }
+
+-- |Code for sorting colors (e.g, rgb, gbr, hsv, svh, etc.)
+type SortCode = String
 
 -- =============================================================== --
 -- Color
 
+-- |RGB representation of a colorable instance.
 data RGB = RGB { red   :: Int
                , green :: Int
                , blue  :: Int
@@ -48,7 +57,7 @@ instance Show RGB where
                    | x < 256   = showHex x []
                    | otherwise = "ff"
 
--- |Terminal color codes.
+-- |Ansi color codes.
 type ColorCode = Int
 
 -- | Everything needed to describe and display a terminal color.
@@ -62,8 +71,6 @@ instance Show Color where
 
 type Palette = [Color]
 
-type SortCode = String
-
 ---------------------------------------------------------------------
 -- Colorable class: things that can be converted to colors
 
@@ -73,18 +80,20 @@ class Colorable a where
 ---------------------------------------------------------------------
 -- RGB-type colors
 
-data ShadeOfColor = CS0 | CS1 | CS2 | CS3 | CS4 | CS5
-                    deriving ( Eq, Ord, Show, Enum )
+data RGBChannel = RChannel | GChannel | BChannel deriving ( Eq, Show )
 
-data RGBIndex = RGBIndex ShadeOfColor ShadeOfColor ShadeOfColor
+data ChannelIntensity = I0 | I1 | I2 | I3 | I4 | I5
+                        deriving ( Eq, Ord, Show, Enum )
+
+data RGBColor = RGBColor ChannelIntensity ChannelIntensity ChannelIntensity
                 deriving ( Eq, Show )
 
-instance Colorable RGBIndex where
-    toColor (RGBIndex r g b) =
-        let c      = 16 + 36 * fromEnum r + 6 * fromEnum g + fromEnum b
-            go CS0 = 0
-            go CS1 = 95
-            go x   = 40 + go (pred x)
+instance Colorable RGBColor where
+    toColor (RGBColor r g b) =
+        let c     = 16 + 36 * fromEnum r + 6 * fromEnum g + fromEnum b
+            go I0 = 0
+            go I1 = 95
+            go x  = 40 + go (pred x)
         in  Color { code  = c
                   , rgb   = RGB (go r) (go g) (go b)
                   , color = T.Color240 . fromIntegral $ c - 16
@@ -93,12 +102,12 @@ instance Colorable RGBIndex where
 ---------------------------------------------------------------------
 -- Greyscale colors
 
-data GreyIndex = GS0  | GS1  | GS2  | GS3  | GS4  | GS5  | GS6  | GS7  |
-                 GS8  | GS9  | GS10 | GS11 | GS12 | GS13 | GS14 | GS15 |
-                 GS16 | GS17 | GS18 | GS19 | GS20 | GS21 | GS22 | GS23
-                 deriving ( Eq, Ord, Show, Enum )
+data GreyIntensity = GI0  | GI1  | GI2  | GI3  | GI4  | GI5  | GI6  | GI7  |
+                     GI8  | GI9  | GI10 | GI11 | GI12 | GI13 | GI14 | GI15 |
+                     GI16 | GI17 | GI18 | GI19 | GI20 | GI21 | GI22 | GI23
+                     deriving ( Eq, Ord, Show, Enum )
 
-instance Colorable GreyIndex where
+instance Colorable GreyIntensity where
     toColor x = Color c (RGB v v v) z
         where c = 232 + fromEnum x
               v = 10 * fromEnum x + 8
@@ -107,13 +116,13 @@ instance Colorable GreyIndex where
 ---------------------------------------------------------------------
 -- Basic 4-bit colors
 
-data BasicIndex = Black | Maroon  | Green | Olive  |
+data BasicColor = Black | Maroon  | Green | Olive  |
                   Navy  | Purple  | Teal  | Silver |
                   Grey  | Red     | Lime  | Yellow |
-                  Blue | Fuchsia | Aqua | White
+                  Blue  | Fuchsia | Aqua | White
                   deriving ( Eq, Show, Enum )
 
-instance Colorable BasicIndex where
+instance Colorable BasicColor where
     toColor x = Color (encode x) (toRGB x) (go x)
         where go            = T.ISOColor . fromIntegral . encode
               toRGB Black   = RGB   0   0   0

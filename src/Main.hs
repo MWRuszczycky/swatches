@@ -1,21 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import qualified System.Console.GetOpt as Opt
 import Control.Monad                          ( void              )
 import System.Posix.Env                       ( putEnv            )
 import System.Environment                     ( getArgs           )
-import Data.List                              ( foldl'            )
 import Brick                                  ( App (..)
                                               , neverShowCursor
                                               , defaultMain
                                               , Widget            )
 import Types                                  ( Name  (..)
-                                              , Setup (..)
-                                              , Mode  (..)        )
+                                              , Setup (..)        )
+import Resources                              ( getSetup          )
 import Controller                             ( routeEvent        )
 import Viewer                                 ( routeView
-                                              , theMap
-                                              , usage             )
+                                              , theMap            )
 
 main :: IO ()
 main = getSetup <$> getArgs >>= either ( putStrLn ) ( runSwatches )
@@ -24,7 +21,6 @@ runSwatches :: Setup -> IO ()
 runSwatches setup = do
     putEnv $ "TERM=" ++ terminal setup
     print . mode $ setup
-    print . compressed $ setup
     void . defaultMain theApp $ setup
 
 ---------------------------------------------------------------------
@@ -35,35 +31,3 @@ theApp = App { appDraw         = routeView
              , appHandleEvent  = routeEvent
              , appStartEvent   = return
              , appAttrMap      = const theMap }
-
----------------------------------------------------------------------
-
-setupDef :: Setup
-setupDef = Setup { mode       = Spectrum "svh"
-                 , terminal   = "xterm-256color"
-                 , testString = "abcdefghijklmnopqrstuvwxyz0123456789"
-                 , compressed = False
-                 }
-
-options :: [ Opt.OptDescr (Setup -> Setup) ]
-options = [ Opt.Option "t" ["terminal"]
-                ( Opt.ReqArg ( \ arg s -> s { terminal = arg } ) "TERMINAL" )
-                "Set the terminal (defualt is xterm-256-color)"
-          , Opt.Option "m" ["mode"]
-                ( Opt.ReqArg ( \ arg s -> s { mode = Spectrum arg } ) "MODE" )
-                "Set the display mode."
-          , Opt.Option "s" ["string"]
-                ( Opt.ReqArg ( \ arg s -> s { testString = arg } ) "STRING" )
-                "Set the test string."
-          , Opt.Option "c" ["compressed"]
-                ( Opt.NoArg ( \ s -> s { compressed = True } ) )
-                "Display colors and ANSI colors with minimal space."
-          , Opt.Option "h" ["help"]
-                ( Opt.NoArg ( \ s -> s { mode = Help } ) )
-                "Display usage information."
-          ]
-
-getSetup :: [String] -> Either String Setup
-getSetup args = case Opt.getOpt Opt.Permute options args of
-                     ( os, _ , [] ) -> Right $ foldl' ( flip ($) ) setupDef os
-                     ( _ , _ , es ) -> Left . unlines $ es

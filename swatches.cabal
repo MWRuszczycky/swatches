@@ -21,7 +21,8 @@ executable swatches
                       , unix
                       , vty
   other-modules:        Controller
+                      , Model
                       , Paths_swatches
+                      , Resources
                       , Types
                       , Viewer
-                      , Model

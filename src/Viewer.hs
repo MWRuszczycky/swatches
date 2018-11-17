@@ -1,151 +1,109 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Viewer
-    ( usage
-    , routeView
+    ( routeView
     , theMap
     ) where
 
-import Data.List            ( intersperse
-                            , intercalate
-                            , sortOn            )
-import Types                ( Name         (..) )
-import Graphics.Vty         ( withBackColor
-                            , withForeColor
-                            , black
-                            , white
-                            , defAttr           )
-import Brick.Widgets.Center ( hCenter           )
-import Brick                ( Widget
-                            , ViewportType (..)
-                            , AttrMap
-                            , AttrName     (..)
-                            , (<+>), (<=>)
-                            , fg, bg
-                            , str
-                            , hLimit
-                            , vBox, hBox
-                            , viewport
-                            , withAttr
-                            , withDefAttr
-                            , attrMap
-                            , attrName          )
-import Model                ( palette256
-                            , palette240
-                            , paletteGreys
-                            , palette16
-                            , sortPalette
-                            , value
-                            , rgbToHSV          )
-import Types                ( Mode         (..)
-                            , Setup        (..)
-                            , RGB          (..)
-                            , SortCode     (..)
-                            , Color        (..) )
+import qualified Types                as T
+import qualified Graphics.Vty         as Vty
+import qualified Brick                as B
+import qualified Brick.Widgets.Center as B
+import Data.List                             ( intersperse  )
+import Brick                                 ( (<=>), (<+>) )
+import Model                                 ( palette256
+                                             , palette240
+                                             , paletteGreys
+                                             , palette16
+                                             , sortPalette
+                                             , value
+                                             , rgbToHSV     )
 
 ---------------------------------------------------------------------
 -- interfaces
 
-routeView :: Setup -> [ Widget Name ]
-routeView st = case mode st of
-                    Spectrum s -> if compressed st
-                                     then spectrumC s
-                                     else spectrum (testString st) s
-                    otherwise  -> spectrum (testString st) "ansi"
+routeView :: T.Setup -> [ B.Widget T.Name ]
+routeView st = case T.mode st of
+                    T.Spectrum  -> spectrumUI (T.testString st) (T.sortCode st)
+                    T.Block     -> blockUI (T.sortCode st)
+                    otherwise   -> spectrumUI (T.testString st) "ansi"
 
-spectrum :: String -> SortCode -> [ Widget Name ]
-spectrum s sc = [ viewport Swatches Both ui ]
-    where ui240 = vBox . map (specLine240 s) . sortPalette sc $ palette240
-          ui16  = vBox . map (specLine16 s) $ palette16
-          ui    = ui16 <=> separator 1 <=> ui240
+spectrumUI :: String -> T.SortCode -> [ B.Widget T.Name ]
+spectrumUI s sc = [ B.viewport T.Swatches B.Both $ title <=> ui ]
+    where ui    = B.vBox . map (specLine s) . reverse . sortPalette sc
+                  $ palette256
+          title = B.withAttr "label" . B.hLimit w . B.hCenter . B.str $ note
+          note  = "hexcodes may be incorrect for user-defined colors"
+          w     | length note > 25 + length s = length note
+                | otherwise                   = 25 + length s
 
-spectrumC :: SortCode -> [Widget Name]
-spectrumC sc = [ viewport Swatches Both ui ]
-    where ui = hBox [ label' 3 (show . code) c | c <- palette16 ]
+blockUI :: T.SortCode -> [ B.Widget T.Name ]
+blockUI sc = [ B.viewport T.Swatches B.Both ( ui16 <=> ui240 ) ]
+    where ui16  = labelRow palette16 <=> swatchRow palette16
+          ui240 = B.vBox [ labelRow cs <=> swatchRow cs
+                           | cs <- breakInto 16 . sortPalette sc $ palette240 ]
 
 ---------------------------------------------------------------------
 -- widgets
 
-label' :: Int -> (Color -> String) -> Color -> Widget Name
-label' w f c
-    | v < 10    = withDefAttr "fwhite" x
-    | otherwise = withDefAttr "fblack" x
-    where x = withAttr (colorBG c) . hLimit w . hCenter . str . f $ c
-          v = value . rgb $ c
+label :: Int -> (T.Color -> String) -> T.Color -> B.Widget T.Name
+label w f = B.withAttr "label" . B.hLimit w . B.hCenter . B.str . f
 
-label :: Int -> AttrName -> String -> Widget Name
-label w a = withDefAttr "fwhite" . withAttr a . hLimit w . hCenter . str
+labelRow :: T.Palette -> B.Widget T.Name
+labelRow = B.hBox . intersperse (hSeparator 1) . map (label 5 (show . T.code))
 
-separator :: Int -> Widget Name
--- ^Spacing widget with a given width used to separate swatches.
-separator w = withAttr "spacer" . str . replicate w $ ' '
+swatch :: Int -> T.Color -> B.Widget T.Name
+-- ^horizontal color swatch of given width.
+swatch w c = B.withAttr ( colorBG c ) . B.str . replicate w $ ' '
 
-swatchStr :: String -> Color -> Widget Name
-swatchStr s c = withAttr ( colorFG c ) . str $ s
+coloredString :: String -> T.Color -> B.Widget T.Name
+-- ^Colored string on the default background.
+coloredString s c = B.withAttr ( colorFG c ) . B.str $ s
 
-swatch :: Int -> Color -> Widget Name
-swatch w c = withAttr ( colorBG c ) . str . replicate w $ ' '
+swatchRow :: T.Palette -> B.Widget T.Name
+swatchRow = B.hBox . intersperse (hSeparator 1) . map (swatch 5)
 
-specLine240 :: String -> Color -> Widget Name
-specLine240 s c = swatch 3 c
-                  <+> separator 3
-                  <+> swatchStr s c
-                  <+> separator 3
-                  <+> swatch 3 c
-                  <+> separator 3
-                  <+> label 8 "default" (show . rgb $ c)
-                  <+> separator 1
-                  <+> label 3  "default" (show . code $ c)
+hSeparator :: Int -> B.Widget T.Name
+-- ^Horizontal using default colors.
+hSeparator w = B.str . replicate w $ ' '
 
-specLine16 :: String -> Color -> Widget Name
-specLine16 s c = swatch 3 c
-                 <+> separator 3
-                 <+> swatchStr s c
-                 <+> separator 3
-                 <+> swatch 3 c
-                 <+> separator 3
-                 <+> label 9 "default" ( (++ "?") . show . rgb $ c )
-                 <+> separator 1
-                 <+> label 3 "default" (show . code $ c)
+specLine :: String -> T.Color -> B.Widget T.Name
+specLine s c = B.hBox [ label 8 ( show . T.rgb) c
+                      , hSeparator 1
+                      , label 3 (show . T.code) c
+                      , hSeparator 1
+                      , swatch 3 c
+                      , hSeparator 3
+                      , coloredString s c
+                      , hSeparator 3
+                      , swatch 3 c
+                      ]
 
 ---------------------------------------------------------------------
 -- Attributes
 
-colorFG :: Color -> AttrName
-colorFG = attrName . ('f':) . show . rgb
+colorFG :: T.Color -> B.AttrName
+colorFG = B.attrName . ('f':) . show . T.rgb
 
-colorBG :: Color -> AttrName
-colorBG = attrName . ('b':) . show . rgb
+colorBG :: T.Color -> B.AttrName
+colorBG = B.attrName . ('b':) . show . T.rgb
 
-theMap :: AttrMap
-theMap = attrMap defAttr . concat $
+theMap :: B.AttrMap
+theMap = B.attrMap Vty.defAttr . concat $
             [ -- foreground color map: prefix hexcode with 'f'
-              [ (attrName . ('f':) . show . rgb $ c, fg . color $ c)
+              [ (B.attrName . ('f':) . show . T.rgb $ c, B.fg . T.color $ c)
                     | c <- palette256 ]
               -- background color map: prefix hexcode with 'b'
-            , [ (attrName . ('b':) . show . rgb $ c, bg . color $ c)
+            , [ (B.attrName . ('b':) . show . T.rgb $ c, B.bg . T.color $ c)
                     | c <- palette256 ]
               -- base attributes
-            , [ ("fblack", fg black)
-              , ("fwhite", fg white) ]
+            , [ ("label", Vty.withStyle Vty.defAttr Vty.bold) ]
             ]
-
----------------------------------------------------------------------
--- Usage information
-
-usage :: IO ()
-usage = putStrLn . unlines $ helpStr
-    where helpStr = [ "Swatches"
-                    , "Displays the 256 colors available in the terminal."
-                    , "   swatches           : display a 16 x 16 unsorted grid"
-                    , "   swatches --stacked : display sorted colors" ]
 
 ---------------------------------------------------------------------
 -- Helper functions
 
-shuffleIn :: [a] -> [a] -> [a]
--- ^Evenly shuffles two lists together into a new list with the
--- combined values.
-shuffleIn [] ys         = ys
-shuffleIn xs []         = xs
-shuffleIn (x:xs) (y:ys) = x:y:( shuffleIn xs ys )
+breakInto :: Int -> [a] -> [[a]]
+breakInto _ [] = []
+breakInto n xs = ps : breakInto n ss
+    where (ps, ss) = splitAt n xs

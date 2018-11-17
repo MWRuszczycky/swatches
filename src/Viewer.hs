@@ -35,6 +35,7 @@ import Model                ( palette256
                             , paletteGreys
                             , palette16
                             , sortPalette
+                            , value
                             , rgbToHSV          )
 import Types                ( Mode         (..)
                             , Setup        (..)
@@ -60,19 +61,17 @@ spectrum s sc = [ viewport Swatches Both ui ]
 
 spectrumC :: SortCode -> [Widget Name]
 spectrumC sc = [ viewport Swatches Both ui ]
-    where ui = hBox [ label 3 (colorBG c) . show . code $ c
-                      | c <- palette16 ]
+    where ui = hBox [ label' 3 (show . code) c | c <- palette16 ]
 
 ---------------------------------------------------------------------
 -- widgets
 
 label' :: Int -> (Color -> String) -> Color -> Widget Name
-label' w s c = withDefAttr "fwhite"
-               . withAttr (colorBG c)
-               . hLimit w
-               . hCenter
-               . str
-               . s $ c
+label' w f c
+    | v < 10    = withDefAttr "fwhite" x
+    | otherwise = withDefAttr "fblack" x
+    where x = withAttr (colorBG c) . hLimit w . hCenter . str . f $ c
+          v = value . rgb $ c
 
 label :: Int -> AttrName -> String -> Widget Name
 label w a = withDefAttr "fwhite" . withAttr a . hLimit w . hCenter . str

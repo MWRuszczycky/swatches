@@ -6,6 +6,9 @@ module Model
     , palette16
     , sortPalette
     , rgbToHSV
+    , hue
+    , saturation
+    , value
     ) where
 
 import Data.List ( sortOn            )

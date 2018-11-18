@@ -5,6 +5,7 @@ module Resources
 
 import qualified System.Console.GetOpt as Opt
 import qualified Types                 as T
+import Text.Read                              ( readMaybe   )
 import Paths_swatches                         ( version     )
 import Data.Version                           ( showVersion )
 import Data.List                              ( foldl'
@@ -91,6 +92,10 @@ options :: [ Opt.OptDescr (T.Setup -> T.Setup) ]
 options = [ Opt.Option "" ["terminal"]
                 ( Opt.ReqArg ( \ arg s -> s { T.terminal = arg } ) "TERM" )
                 "Set the TERM terminal-ID (see below)."
+          , Opt.Option "b" ["background"]
+                ( Opt.ReqArg ( \ arg s -> s { T.background = readMaybe arg } )
+                    "CODE" )
+                "Set the background according\nto the specified ansi code."
           , Opt.Option "" ["mode"]
                 ( Opt.ReqArg ( \ arg s -> s { T.mode = setMode arg } ) "MODE" )
                 "Set the display mode."
@@ -112,12 +117,13 @@ options = [ Opt.Option "" ["terminal"]
           ]
 
 setupDef :: T.Setup
-setupDef = T.Setup { T.mode     = T.Spectrum
-                   , T.terminal = "xterm-256color"
-                   , T.string   = "swatches"
-                   , T.sortCode = "svh"
-                   , T.sortDir  = reverse
-                   , T.info     = Nothing
+setupDef = T.Setup { T.mode       = T.Spectrum
+                   , T.terminal   = "xterm-256color"
+                   , T.background = Nothing
+                   , T.string     = "swatches"
+                   , T.sortCode   = "svh"
+                   , T.sortDir    = reverse
+                   , T.info       = Nothing
                    }
 
 setMode :: String -> T.Mode

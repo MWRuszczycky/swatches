@@ -2,7 +2,7 @@
 
 module Viewer
     ( routeView
-    , theMap
+    , makeMap
     ) where
 
 import qualified Types                as T
@@ -90,17 +90,26 @@ colorFG = B.attrName . ('f':) . show . T.rgb
 colorBG :: T.Color -> B.AttrName
 colorBG = B.attrName . ('b':) . show . T.rgb
 
-theMap :: B.AttrMap
-theMap = B.attrMap Vty.defAttr . concat $
-            [ -- foreground color map: prefix hexcode with 'f'
-              [ (B.attrName . ('f':) . show . T.rgb $ c, B.fg . T.color $ c)
-                    | c <- palette256 ]
-              -- background color map: prefix hexcode with 'b'
-            , [ (B.attrName . ('b':) . show . T.rgb $ c, B.bg . T.color $ c)
-                    | c <- palette256 ]
-              -- base attributes
-            , [ ("label", Vty.withStyle Vty.defAttr Vty.bold) ]
-            ]
+getVtyColor :: T.ColorCode -> Maybe Vty.Color
+getVtyColor c
+    | c < 0     = Nothing
+    | c < 16    = Just . Vty.ISOColor . fromIntegral $ c
+    | c < 256   = Just . Vty.Color240 . fromIntegral $ c - 16
+    | otherwise = Nothing
+
+makeMap :: T.Setup -> B.AttrMap
+makeMap st = let clr    = T.background st >>= getVtyColor
+                 dattr  = maybe Vty.defAttr (Vty.withBackColor Vty.defAttr) clr
+                 fgname = B.attrName . ('f':) . show . T.rgb
+                 bgname = B.attrName . ('b':) . show . T.rgb
+             in  B.attrMap dattr . concat $
+                     [ -- foreground color map: prefix hexcode with 'f'
+                       [ (fgname c, B.fg . T.color $ c) | c <- palette256 ]
+                       -- background color map: prefix hexcode with 'b'
+                     , [ (bgname c, B.bg . T.color $ c) | c <- palette256 ]
+                       -- base attributes
+                     , [ ("label", Vty.withStyle Vty.defAttr Vty.bold) ]
+                     ]
 
 ---------------------------------------------------------------------
 -- Helper functions

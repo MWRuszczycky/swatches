@@ -17,8 +17,8 @@ module Types
     , RGBColor         (..)
     ) where
 
-import qualified Graphics.Vty as T
-import Numeric                     ( showHex )
+import qualified Graphics.Vty as Vty
+import Numeric                       ( showHex )
 
 -- =============================================================== --
 -- State
@@ -32,13 +32,14 @@ data Mode = Cube
           deriving ( Eq, Show )
 
 -- |Programmatic State
-data Setup = Setup { mode     :: Mode               -- Display mode
-                   , terminal :: String             -- Terminal settings
-                   , string   :: String             -- Display string
-                   , sortCode :: SortCode           -- Color sorting code
-                   , sortDir  :: [Color] -> [Color] -- Sorting direction
-                   , info     :: Maybe String       -- Info to display to user
-                   }                                -- (e.g., a help string)
+data Setup = Setup { mode       :: Mode               -- Display mode
+                   , terminal   :: String             -- Terminal settings
+                   , background :: Maybe Int          -- Ansi code for backgrnd
+                   , string     :: String             -- Display string
+                   , sortCode   :: SortCode           -- Color sorting code
+                   , sortDir    :: [Color] -> [Color] -- Sorting direction
+                   , info       :: Maybe String       -- Info to display to user
+                   }                                  -- (e.g., a help string)
 
 -- |Code for sorting colors (e.g, rgb, gbr, hsv, svh, etc.)
 type SortCode = String
@@ -65,7 +66,7 @@ type ColorCode = Int
 -- | Everything needed to describe and display a terminal color.
 data Color = Color { code  :: ColorCode     -- Terminal color code
                    , rgb   :: RGB           -- RGB value of color
-                   , color :: T.Color       -- Vty color value for
+                   , color :: Vty.Color     -- Vty color value
                    }
 
 instance Show Color where
@@ -98,7 +99,7 @@ instance Colorable RGBColor where
             go x  = 40 + go (pred x)
         in  Color { code  = c
                   , rgb   = RGB (go r) (go g) (go b)
-                  , color = T.Color240 . fromIntegral $ c - 16
+                  , color = Vty.Color240 . fromIntegral $ c - 16
                   }
 
 ---------------------------------------------------------------------
@@ -113,7 +114,7 @@ instance Colorable GreyIntensity where
     toColor x = Color c (RGB v v v) z
         where c = 232 + fromEnum x
               v = 10 * fromEnum x + 8
-              z = T.Color240 . fromIntegral $ c - 16
+              z = Vty.Color240 . fromIntegral $ c - 16
 
 ---------------------------------------------------------------------
 -- Basic 4-bit colors
@@ -126,7 +127,7 @@ data BasicColor = Black | Maroon  | Green | Olive  |
 
 instance Colorable BasicColor where
     toColor x = Color (encode x) (toRGB x) (go x)
-        where go            = T.ISOColor . fromIntegral . encode
+        where go            = Vty.ISOColor . fromIntegral . encode
               toRGB Black   = RGB   0   0   0
               toRGB Maroon  = RGB 128   0   0
               toRGB Green   = RGB   0 128   0

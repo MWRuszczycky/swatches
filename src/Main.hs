@@ -12,7 +12,7 @@ import Types                                  ( Name  (..)
 import Resources                              ( getSetup          )
 import Controller                             ( routeEvent        )
 import Viewer                                 ( routeView
-                                              , theMap            )
+                                              , makeMap           )
 
 main :: IO ()
 main = getSetup <$> getArgs >>= either ( putStrLn ) ( runSwatches )
@@ -21,13 +21,13 @@ runSwatches :: Setup -> IO ()
 runSwatches setup = do
     putEnv $ "TERM=" ++ terminal setup
     print . mode $ setup
-    void . defaultMain theApp $ setup
+    void . defaultMain (makeApp setup) $ setup
 
 ---------------------------------------------------------------------
 
-theApp :: App Setup e Name
-theApp = App { appDraw         = routeView
-             , appChooseCursor = neverShowCursor
-             , appHandleEvent  = routeEvent
-             , appStartEvent   = return
-             , appAttrMap      = const theMap }
+makeApp :: Setup -> App Setup e Name
+makeApp st = App { appDraw         = routeView
+                 , appChooseCursor = neverShowCursor
+                 , appHandleEvent  = routeEvent
+                 , appStartEvent   = return
+                 , appAttrMap      = const . makeMap $ st }

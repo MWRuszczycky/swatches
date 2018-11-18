@@ -29,14 +29,16 @@ data Name = Swatches deriving ( Ord, Show, Eq )
 data Mode = Cube
           | Spectrum
           | Block
-          | Help deriving ( Eq, Show )
+          deriving ( Eq, Show )
 
 -- |Programmatic State
-data Setup = Setup { mode       :: Mode     -- Display mode
-                   , terminal   :: String   -- Terminal settings
-                   , testString :: String   -- Display string
-                   , sortCode   :: SortCode -- Color sorting code
-                   }
+data Setup = Setup { mode     :: Mode               -- Display mode
+                   , terminal :: String             -- Terminal settings
+                   , string   :: String             -- Display string
+                   , sortCode :: SortCode           -- Color sorting code
+                   , sortDir  :: [Color] -> [Color] -- Sorting direction
+                   , info     :: Maybe String       -- Info to display to user
+                   }                                -- (e.g., a help string)
 
 -- |Code for sorting colors (e.g, rgb, gbr, hsv, svh, etc.)
 type SortCode = String

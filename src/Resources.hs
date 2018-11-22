@@ -19,9 +19,9 @@ helpStr = intercalate "\n" hs
     where hs = [ usage
                , Opt.usageInfo "Options summary (more detail below):" options
                , spacer
-               , terminalUsage
-               , spacer
                , modeUsage
+               , spacer
+               , terminalUsage
                , spacer
                , stringUsage
                , spacer
@@ -34,18 +34,18 @@ spacer = replicate 60 '-'
 usage :: String
 usage = unlines hs
     where hs = [ "Swatches summarizes the colors available in your terminal.\n"
-               , "Usage:\n  swatches [OPTION ..]"
+               , "Usage:\n  swatches [MODE] [OPTION..]"
                ]
 
 terminalUsage :: String
 terminalUsage = unlines hs
-    where hs = [ "-- Set the TERM terminal-ID with the <terminal> option"
-               , "  Set the TERM parameter. The default is xterm-256color."
+    where hs = [ "-- Set the TERM terminal-ID with the <terminal> option\n"
+               , "Set the TERM parameter. The default is xterm-256color."
                ]
 
 modeUsage :: String
 modeUsage = unlines hs
-    where hs = [ "-- Set the display mode with the <mode> option\n"
+    where hs = [ "-- Set the display mode with the [MODE] argument\n"
                , "You can display the colors in the following formats:\n"
                , "  spectrum (default): Vertical spectrum together with a"
                , "    test string, ansi code and hexcode. Hexcodes may not be"
@@ -95,16 +95,15 @@ options = [ Opt.Option "" ["terminal"]
           , Opt.Option "b" ["background"]
                 ( Opt.ReqArg ( \ arg s -> s { T.background = readMaybe arg } )
                     "CODE" )
-                "Set the background according\nto the specified ansi code."
-          , Opt.Option "" ["mode"]
-                ( Opt.ReqArg ( \ arg s -> s { T.mode = setMode arg } ) "MODE" )
-                "Set the display mode."
+                ( "Set the background color according\n"
+                  ++ "to the specified ansi code." )
           , Opt.Option "" ["string"]
                 ( Opt.ReqArg ( \ arg s -> s { T.string = arg } ) "STRING" )
                 "Set the test string."
           , Opt.Option "" ["sort"]
-                ( Opt.ReqArg ( \ arg s -> s { T.sortCode = arg } ) "STRING" )
-                "Set the color sort."
+                ( Opt.ReqArg ( \ arg s -> s { T.sortCode = arg } ) "CODE" )
+                ( "Set the color sort using a sort code\n"
+                  ++ "such as 'rgb', 'shv', etc. (see below)." )
           , Opt.Option "a" ["ascending"]
                 ( Opt.NoArg ( \ s -> s { T.sortDir = id } ) )
                 "Use an ascending color sort\n(default is descending)."
@@ -126,15 +125,17 @@ setupDef = T.Setup { T.mode       = T.Spectrum
                    , T.info       = Nothing
                    }
 
-setMode :: String -> T.Mode
-setMode "cube"     = T.Cube
-setMode "spectrum" = T.Spectrum
-setMode "block"    = T.Block
-setMode _          = T.Spectrum
+setMode :: String -> T.Setup -> T.Setup
+setMode "cube"     st = st { T.mode = T.Cube     }
+setMode "spectrum" st = st { T.mode = T.Spectrum }
+setMode "block"    st = st { T.mode = T.Block    }
+setMode _          st = st
 
 getSetup :: [String] -> Either String T.Setup
 getSetup args =
     case Opt.getOpt Opt.Permute options args of
-         ( os, _ , [] ) -> let st = foldl' ( flip ($) ) setupDef os
-                           in  maybe (Right st) (Left . id) . T.info $ st
-         ( _ , _ , es ) -> Left . unlines $ es
+         ( os, x:_, [] ) -> let st = setMode x . foldl' (flip ($)) setupDef $ os
+                            in  maybe (Right st) (Left . id) . T.info $ st
+         ( os, [] , [] ) -> let st = foldl' (flip ($)) setupDef os
+                            in  maybe (Right st) (Left . id) . T.info $ st
+         ( _ , _  , es ) -> Left . unlines $ es

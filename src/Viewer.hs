@@ -29,10 +29,10 @@ routeView :: T.Setup -> [ B.Widget T.Name ]
 routeView st = case T.mode st of
                     T.Block   -> blockUI st
                     T.Cube c  -> cubeUI  c
-                    otherwise -> spectrumUI st
+                    otherwise -> ravelUI st
 
-spectrumUI :: T.Setup-> [ B.Widget T.Name ]
-spectrumUI st = [ B.viewport T.Swatches B.Both $ title <=> ui ]
+ravelUI :: T.Setup-> [ B.Widget T.Name ]
+ravelUI st = [ B.viewport T.Swatches B.Both $ title <=> ui ]
     where s     = T.string st
           go    = T.sortDir st . sortPalette (T.sortCode st)
           ui    = B.vBox . map (specLine s) . go $ palette256

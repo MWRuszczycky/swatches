@@ -48,7 +48,7 @@ modeUsage :: String
 modeUsage = unlines hs
     where hs = [ "-- Set the display mode with the [MODE] argument\n"
                , "You can display the colors in the following formats:\n"
-               , "  spectrum (default): Vertical spectrum together with a"
+               , "  ravel (default): Vertical spectrum together with a"
                , "    test string, ansi code and hexcode. Hexcodes may not be"
                , "    correct if colors have been user-defined.\n"
                , "  block: 16 x 16 block of swatches labeled with ansi codes."
@@ -59,7 +59,7 @@ modeUsage = unlines hs
 stringUsage :: String
 stringUsage = unlines hs
     where hs = [ "-- Set the test string to display with the <string> option\n"
-               , "Set the string to display in different colors in <spectrum>"
+               , "Set the string to display in different colors in <ravel>"
                  ++ " mode."
                ]
 
@@ -117,7 +117,7 @@ options = [ Opt.Option "" ["terminal"]
           ]
 
 setupDef :: T.Setup
-setupDef = T.Setup { T.mode       = T.Spectrum
+setupDef = T.Setup { T.mode       = T.Ravel
                    , T.terminal   = "xterm-256color"
                    , T.background = Nothing
                    , T.string     = "swatches"
@@ -127,10 +127,10 @@ setupDef = T.Setup { T.mode       = T.Spectrum
                    }
 
 setMode :: String -> T.Setup -> T.Setup
-setMode "cube"     st = st { T.mode = T.Cube initCube666 }
-setMode "spectrum" st = st { T.mode = T.Spectrum         }
-setMode "block"    st = st { T.mode = T.Block            }
-setMode _          st = st
+setMode "cube"  st = st { T.mode = T.Cube initCube666 }
+setMode "ravel" st = st { T.mode = T.Ravel            }
+setMode "block" st = st { T.mode = T.Block            }
+setMode _       st = st
 
 getSetup :: [String] -> Either String T.Setup
 getSetup args =

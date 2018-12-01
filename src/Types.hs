@@ -28,7 +28,7 @@ data Name = Swatches deriving ( Ord, Show, Eq )
 
 -- |Display mode
 data Mode = Cube RGBCube
-          | Spectrum
+          | Ravel
           | Block
           deriving ( Show )
 

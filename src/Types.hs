@@ -47,11 +47,12 @@ type SortCode = String
 
 type RGBPlane = [[Color]]
 
--- |RGB Cubes are just two stacked planes of color values that stack
--- together to make a cube of color values. They work like zippers.
--- The first stack is the upper half and runs bottom to top, the
--- second stack is the lower half and runs top to bottom. The middle
--- plane is the active plane.
+-- |RGB Cubes are just simple zipper-like structures with a top stack
+-- a center plane and a bottom stack of color RGB color planes. The
+-- top stack runs head to tail as bottom to top (i.e., in the
+-- negative z-direction). The bottom stack runs head to tail as top
+-- to bottom (i.e., in the positive z-direction). The center plane is
+-- the active plane.
 data RGBCube = RGBCube [RGBPlane] RGBPlane [RGBPlane] deriving ( Show )
 
 -- =============================================================== --

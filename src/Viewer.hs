@@ -32,14 +32,15 @@ routeView st = case T.mode st of
                     otherwise -> ravelUI st
 
 ravelUI :: T.Setup-> [ B.Widget T.Name ]
-ravelUI st = [ B.viewport T.Swatches B.Both $ title <=> ui ]
-    where s     = T.string st
-          go    = T.sortDir st . sortPalette (T.sortCode st)
-          ui    = B.vBox . map (specLine s) . go $ palette256
-          title = B.withAttr "label" . B.hLimit w . B.hCenter . B.str $ note
-          note  = "hexcodes may be incorrect for user-defined colors"
-          w     | length note > 25 + length s = length note
-                | otherwise                   = 25 + length s
+ravelUI st =
+    let s     = T.string st
+        n     = quot 256 . quot 80 $ ravelLineLength s + 3
+        go    = T.sortDir st . sortPalette (T.sortCode st)
+        cols  = map B.vBox . breakInto n . map (ravelLine s) . go $ palette256
+        ui    = intersperse (hSeparator 3) cols
+        note  = "hexcodes may be incorrect for user-defined colors"
+        title = B.withAttr "label" . B.str $ note
+    in  [ B.viewport T.Swatches B.Both $ title <=> B.hBox ui ]
 
 blockUI :: T.Setup -> [ B.Widget T.Name ]
 blockUI st =
@@ -97,17 +98,19 @@ hSeparator :: Int -> B.Widget T.Name
 -- ^Horizontal spacing using default colors.
 hSeparator w = B.str . replicate w $ ' '
 
-specLine :: String -> T.Color -> B.Widget T.Name
-specLine s c = B.hBox [ label 8 (show . T.rgb) c
-                      , hSeparator 1
-                      , label 3 (show . T.code) c
-                      , hSeparator 1
-                      , swatch 3 c
-                      , hSeparator 3
-                      , coloredString s c
-                      , hSeparator 3
-                      , swatch 3 c
-                      ]
+---------------------------------------------------------------------
+-- Help widgets for ravel UI
+
+ravelLine :: String -> T.Color -> B.Widget T.Name
+ravelLine s c = B.hBox . intersperse (hSeparator 2) $ ui
+    where ui = [ label 7 (show . T.rgb) c
+               , label 3 (show . T.code) c
+               , coloredString s c
+               , swatch 3 c
+               ]
+
+ravelLineLength :: String -> Int
+ravelLineLength s = length s + 19
 
 ---------------------------------------------------------------------
 -- Helper widgets for the cube UI

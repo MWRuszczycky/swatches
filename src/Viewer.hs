@@ -15,6 +15,7 @@ import Model                                 ( palette256
                                              , palette240
                                              , paletteGreys
                                              , palette16
+                                             , breakInto
                                              , sortPalette
                                              , value
                                              , rgbToHSV     )
@@ -25,6 +26,7 @@ import Model                                 ( palette256
 routeView :: T.Setup -> [ B.Widget T.Name ]
 routeView st = case T.mode st of
                     T.Block   -> blockUI st
+                    T.Cube c  -> cubeUI  c
                     otherwise -> spectrumUI st
 
 spectrumUI :: T.Setup-> [ B.Widget T.Name ]
@@ -43,6 +45,10 @@ blockUI st = [ B.viewport T.Swatches B.Both ( ui16 <=> ui240 ) ]
           ui16  = labelRow palette16 <=> swatchRow palette16
           cs240 = breakInto 16 . go $ palette240
           ui240 = B.vBox [ labelRow cs <=> swatchRow cs | cs <- cs240 ]
+
+cubeUI :: T.RGBCube -> [ B.Widget T.Name ]
+cubeUI (T.RGBCube _ x _) = [ ui ]
+    where ui = B.vBox [ labelRow cs <=> swatchRow cs | cs <- x ]
 
 ---------------------------------------------------------------------
 -- widgets
@@ -110,11 +116,3 @@ makeMap st = let clr    = T.background st >>= getVtyColor
                        -- base attributes
                      , [ ("label", Vty.withStyle Vty.defAttr Vty.bold) ]
                      ]
-
----------------------------------------------------------------------
--- Helper functions
-
-breakInto :: Int -> [a] -> [[a]]
-breakInto _ [] = []
-breakInto n xs = ps : breakInto n ss
-    where (ps, ss) = splitAt n xs

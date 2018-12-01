@@ -4,35 +4,54 @@ module Controller
     ( routeEvent
     ) where
 
-import Types          ( Name (..), Setup )
-import Graphics.Vty   ( Event (..)
-                      , Key (..) )
-import Brick          ( BrickEvent (..)
-                      , EventM
-                      , Next
-                      , ViewportScroll
-                      , viewportScroll
-                      , vScrollBy
-                      , hScrollBy
-                      , halt
-                      , continue )
+import qualified Brick        as B
+import qualified Graphics.Vty as Vty
+import qualified Types        as T
+import Model                         ( moveZneg
+                                     , moveZpos
+                                     , rotXneg
+                                     , rotXpos
+                                     , rotZneg
+                                     , rotZpos  )
 
-routeEvent :: Setup -> BrickEvent Name e -> EventM Name ( Next Setup )
--- ^Manages events, which are presently just for scrolling around in
--- the window. Any non-supported event ends the program. The
--- scrolling always works as expected with the arrow keys. Character
+type EventRoute e = B.BrickEvent T.Name e -> B.EventM T.Name ( B.Next T.Setup )
+type KeyEventRoute e = Vty.Key -> [Vty.Modifier] -> EventRoute e
+
+routeEvent :: T.Setup -> EventRoute e
+routeEvent st = case T.mode st of
+                     T.Cube c   -> cubeEvent c st
+                     otherwise  -> scrollEvent st
+
+cubeEvent :: T.RGBCube -> T.Setup -> EventRoute e
+cubeEvent c st ( B.VtyEvent ( Vty.EvKey k ms ) )
+    | elem k ctrls = B.continue $ st { T.mode = T.Cube (moveCube k ms c) }
+    | otherwise    = B.halt st
+    where ctrls = [ Vty.KDown, Vty.KUp, Vty.KLeft, Vty.KRight ]
+cubeEvent _ st _ = B.halt st
+
+moveCube :: Vty.Key -> [Vty.Modifier] -> T.RGBCube -> T.RGBCube
+moveCube Vty.KDown  []             = moveZneg
+moveCube Vty.KUp    []             = moveZpos
+moveCube Vty.KRight []             = rotZpos
+moveCube Vty.KLeft  []             = rotZneg
+moveCube Vty.KDown (Vty.MShift:[]) = rotXpos
+moveCube Vty.KUp   (Vty.MShift:[]) = rotXneg
+moveCube _          _              = id
+
+scrollEvent :: T.Setup -> EventRoute e
+-- Scrolling always works as expected with the arrow keys. Character
 -- keys can also be used for scrolling; however, right now they are
 -- are based on Dvorak setup that I use. This will be changed later.
-routeEvent st ( VtyEvent ( EvKey k [] ) ) =
+scrollEvent st ( B.VtyEvent ( Vty.EvKey k [] ) ) =
     case k of
-         KUp       -> vScrollBy vpScroll (-1) >> continue st
-         KDown     -> vScrollBy vpScroll 1    >> continue st
-         KRight    -> hScrollBy vpScroll 1    >> continue st
-         KLeft     -> hScrollBy vpScroll (-1) >> continue st
-         KChar 'k' -> vScrollBy vpScroll (-1) >> continue st
-         KChar 'j' -> vScrollBy vpScroll 1    >> continue st
-         KChar 'h' -> hScrollBy vpScroll (-1) >> continue st
-         KChar 't' -> hScrollBy vpScroll 1    >> continue st
-         otherwise -> halt st
-    where vpScroll = viewportScroll Swatches
-routeEvent st _ = halt st
+         Vty.KUp       -> B.vScrollBy vpScroll (-1) >> B.continue st
+         Vty.KDown     -> B.vScrollBy vpScroll 1    >> B.continue st
+         Vty.KRight    -> B.hScrollBy vpScroll 1    >> B.continue st
+         Vty.KLeft     -> B.hScrollBy vpScroll (-1) >> B.continue st
+         Vty.KChar 'k' -> B.vScrollBy vpScroll (-1) >> B.continue st
+         Vty.KChar 'j' -> B.vScrollBy vpScroll 1    >> B.continue st
+         Vty.KChar 'h' -> B.hScrollBy vpScroll (-1) >> B.continue st
+         Vty.KChar 't' -> B.hScrollBy vpScroll 1    >> B.continue st
+         otherwise -> B.halt st
+    where vpScroll = B.viewportScroll T.Swatches
+scrollEvent st _ = B.halt st

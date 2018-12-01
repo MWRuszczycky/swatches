@@ -20,7 +20,6 @@ main = getSetup <$> getArgs >>= either ( putStrLn ) ( runSwatches )
 runSwatches :: Setup -> IO ()
 runSwatches setup = do
     putEnv $ "TERM=" ++ terminal setup
-    print . mode $ setup
     void . defaultMain (makeApp setup) $ setup
 
 ---------------------------------------------------------------------

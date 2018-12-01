@@ -13,8 +13,9 @@ module Types
     , GreyIntensity    (..)
     , Palette          (..)
     , RGB              (..)
-    , RGBChannel       (..)
     , RGBColor         (..)
+    , RGBCube          (..)
+    , RGBPlane         (..)
     ) where
 
 import qualified Graphics.Vty as Vty
@@ -26,10 +27,10 @@ import Numeric                       ( showHex )
 data Name = Swatches deriving ( Ord, Show, Eq )
 
 -- |Display mode
-data Mode = Cube
+data Mode = Cube RGBCube
           | Spectrum
           | Block
-          deriving ( Eq, Show )
+          deriving ( Show )
 
 -- |Programmatic State
 data Setup = Setup { mode       :: Mode               -- Display mode
@@ -43,6 +44,15 @@ data Setup = Setup { mode       :: Mode               -- Display mode
 
 -- |Code for sorting colors (e.g, rgb, gbr, hsv, svh, etc.)
 type SortCode = String
+
+type RGBPlane = [[Color]]
+
+-- |RGB Cubes are just two stacked planes of color values that stack
+-- together to make a cube of color values. They work like zippers.
+-- The first stack is the upper half and runs bottom to top, the
+-- second stack is the lower half and runs top to bottom. The middle
+-- plane is the active plane.
+data RGBCube = RGBCube [RGBPlane] RGBPlane [RGBPlane] deriving ( Show )
 
 -- =============================================================== --
 -- Color
@@ -82,8 +92,6 @@ class Colorable a where
 
 ---------------------------------------------------------------------
 -- RGB-type colors
-
-data RGBChannel = RChannel | GChannel | BChannel deriving ( Eq, Show )
 
 data ChannelIntensity = I0 | I1 | I2 | I3 | I4 | I5
                         deriving ( Eq, Ord, Show, Enum )

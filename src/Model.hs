@@ -1,6 +1,7 @@
 module Model
     ( -- utilities
-      sortPalette
+      breakInto
+    , sortPalette
       -- color palettes
     , palette256
     , palette240
@@ -12,11 +13,20 @@ module Model
     , hue
     , saturation
     , value
+    -- RGB cubes
+    , initCube666
+    , moveZneg
+    , moveZpos
+    , rotXneg
+    , rotXpos
+    , rotZneg
+    , rotZpos
     ) where
 
 import qualified Types as T
 import Types                ( Colorable (..) )
-import Data.List            ( sortOn         )
+import Data.List            ( sortOn
+                            , transpose      )
 
 ---------------------------------------------------------------------
 -- Palettes
@@ -41,7 +51,12 @@ palette16 = map toColor cs
     where cs = [ T.Black .. T.White ]
 
 ---------------------------------------------------------------------
--- Palette sorting
+-- Helper functions & utilities
+
+breakInto :: Int -> [a] -> [[a]]
+breakInto _ [] = []
+breakInto n xs = ps : breakInto n ss
+    where (ps, ss) = splitAt n xs
 
 sortPalette :: T.SortCode -> T.Palette -> T.Palette
 sortPalette "hsv"  = sortOn ( rgbToHSV . T.rgb )
@@ -90,3 +105,61 @@ saturation (T.RGB r g b)
 value :: T.RGB -> Int
 value (T.RGB r g b) = round $ 100 * mx / 256
     where mx = fromIntegral . maximum $ [r, g, b]
+
+---------------------------------------------------------------------
+-- RGB Cubes
+-- Movement is based on a right-handed cartesian coordinate system
+-- where the origin is placed at the upper left corner.
+-- x-Axis : negative to positive is from left to right.
+-- y-Axis : negative to positive is from top to bottom.
+-- z-Axis : negative to positive is from front to back of screen.
+
+moveZpos :: T.RGBCube -> T.RGBCube
+-- ^Move in the positive Z-direction through the cube. This is
+-- equivalent to pulling the cube out of the screen.
+moveZpos (T.RGBCube t x [])    = T.RGBCube t     x []
+moveZpos (T.RGBCube t x (y:b)) = T.RGBCube (x:t) y b
+
+moveZneg :: T.RGBCube -> T.RGBCube
+-- ^Move in the negative Z-direction through the cube. This is
+-- equivalent to pushing the cube into the screen.
+moveZneg (T.RGBCube []    x b) = T.RGBCube [] x b
+moveZneg (T.RGBCube (y:t) x b) = T.RGBCube t  y (x:b)
+
+rotXneg :: T.RGBCube -> T.RGBCube
+-- ^Rotate cube clockwise about the pos -> neg x-axis (i.e., z to y).
+-- Note that this conserves depth so that teh visual effect will
+-- change depending on the depth.
+rotXneg (T.RGBCube t x b)
+    | null t''  = T.RGBCube [] (head b') (tail b')
+    | otherwise = T.RGBCube (tail t'') (head t'') b'
+    where d       = length t + 1
+          (t',b') = splitAt d . transpose . map reverse $ reverse t ++ (x:b)
+          t''     = reverse t'
+
+rotXpos :: T.RGBCube -> T.RGBCube
+-- ^Rotate cube clockwise about the neg -> pos x-axis (i.e., y to z).
+-- Note that this conserves depth so that the visual effect will
+-- change depending on the depth.
+rotXpos (T.RGBCube t x b)
+    | null t''  = T.RGBCube [] (head b') (tail b')
+    | otherwise = T.RGBCube (tail t'') (head t'') b'
+    where d       = length t + 1
+          (t',b') = splitAt d . map reverse . transpose $ reverse t ++ (x:b)
+          t''     = reverse t'
+
+rotZpos :: T.RGBCube -> T.RGBCube
+-- ^Rotate cube clockwise about the neg -> pos z-axis (i.e., x to y).
+rotZpos (T.RGBCube t x b) = T.RGBCube (map go t) (go x) (map go b)
+    where go = map reverse . transpose
+
+rotZneg :: T.RGBCube -> T.RGBCube
+-- ^Rotate cube clockwise about the pos -> neg z-axis (i.e., y to x).
+rotZneg (T.RGBCube t x b) = T.RGBCube (map go t) (go x) (map go b)
+    where go = transpose . map reverse
+
+initCube666 :: T.RGBCube
+-- ^Initialize a 6x6x6 rgb cube such that:
+-- blue (left/right), green (up/down), red (in/out)
+initCube666 = T.RGBCube [] c cs
+    where (c:cs) = map (breakInto 6) . breakInto 36 $ palette216

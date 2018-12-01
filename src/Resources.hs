@@ -5,6 +5,7 @@ module Resources
 
 import qualified System.Console.GetOpt as Opt
 import qualified Types                 as T
+import Model                                  ( initCube666 )
 import Text.Read                              ( readMaybe   )
 import Paths_swatches                         ( version     )
 import Data.Version                           ( showVersion )
@@ -126,9 +127,9 @@ setupDef = T.Setup { T.mode       = T.Spectrum
                    }
 
 setMode :: String -> T.Setup -> T.Setup
-setMode "cube"     st = st { T.mode = T.Cube     }
-setMode "spectrum" st = st { T.mode = T.Spectrum }
-setMode "block"    st = st { T.mode = T.Block    }
+setMode "cube"     st = st { T.mode = T.Cube initCube666 }
+setMode "spectrum" st = st { T.mode = T.Spectrum         }
+setMode "block"    st = st { T.mode = T.Block            }
 setMode _          st = st
 
 getSetup :: [String] -> Either String T.Setup

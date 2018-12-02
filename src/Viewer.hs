@@ -36,11 +36,9 @@ routeView st = case T.mode st of
 
 ravelUI :: T.Setup-> [ B.Widget T.Name ]
 ravelUI st =
-    let s     = T.string st
-        n     = quot 256 . quot 80 $ ravelLineLength s + 3
-        go    = T.sortDir st . sortPalette (T.sortCode st)
-        cols  = map B.vBox . breakInto n . map (ravelLine s) . go $ palette256
-        ui    = intersperse (hSeparator 3) cols
+    let go    = T.sortDir st . sortPalette (T.sortCode st)
+        cols  = breakInto 64 . map ( ravelLine (T.string st) ) . go $ palette256
+        ui    = intersperse (hSeparator 3) . map B.vBox $ cols
         note  = "hexcodes may be incorrect for user-defined colors"
         title = B.withAttr "label" . B.str $ note
     in  [ B.viewport T.Swatches B.Both $ title <=> B.hBox ui ]
@@ -118,9 +116,6 @@ ravelLine s c = B.hBox . intersperse (hSeparator 2) $ ui
                , coloredString s c
                , swatch 3 c
                ]
-
-ravelLineLength :: String -> Int
-ravelLineLength s = length s + 19
 
 matchWidget :: String -> [(T.Color, Double)] -> [B.Widget T.Name]
 matchWidget _ []     = []

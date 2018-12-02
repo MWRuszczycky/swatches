@@ -9,6 +9,7 @@ import qualified Types                as T
 import qualified Graphics.Vty         as Vty
 import qualified Brick                as B
 import qualified Brick.Widgets.Center as B
+import Text.Printf                           ( printf       )
 import Data.List                             ( intersperse
                                              , intercalate  )
 import Brick                                 ( (<=>), (<+>) )
@@ -17,6 +18,7 @@ import Model                                 ( palette256
                                              , paletteGreys
                                              , palette16
                                              , breakInto
+                                             , matchColor
                                              , sortPalette
                                              , value
                                              , rgbToHSV     )
@@ -29,6 +31,7 @@ routeView :: T.Setup -> [ B.Widget T.Name ]
 routeView st = case T.mode st of
                     T.Block   -> blockUI st
                     T.Cube c  -> cubeUI  c
+                    T.Match x -> matchUI x st
                     otherwise -> ravelUI st
 
 ravelUI :: T.Setup-> [ B.Widget T.Name ]
@@ -69,6 +72,13 @@ cubeUI (T.RGBCube _ x _) =
                      , B.withAttr "label" . B.str $ "\n24-Color Greyscale"
                      , uiGreys ]
           <=> cubeControls ]
+
+matchUI :: T.RGB -> T.Setup -> [ B.Widget T.Name ]
+matchUI c st = [ B.viewport T.Swatches B.Both $ twid <=> query <=> ui ]
+    where tstr  = "matches may be incorrect for user-defined colors"
+          twid  = B.withAttr "label" . B.str $ tstr
+          query = B.withAttr "label" . B.str $ "query: " ++ show c
+          ui    = B.vBox . matchWidget (T.string st) . matchColor $ c
 
 -- =============================================================== --
 -- widgets
@@ -111,6 +121,17 @@ ravelLine s c = B.hBox . intersperse (hSeparator 2) $ ui
 
 ravelLineLength :: String -> Int
 ravelLineLength s = length s + 19
+
+matchWidget :: String -> [(T.Color, Double)] -> [B.Widget T.Name]
+matchWidget _ []     = []
+matchWidget s (x:xs) = best : rest
+    where best = matchLine s "closest match" x
+          rest = map (matchLine s []) xs
+
+matchLine :: String -> String -> (T.Color, Double) -> B.Widget T.Name
+matchLine s q (c, d) = ravelLine s c <+> B.withAttr "label" (B.str dist)
+    where pstr = " delta RGB = %5.1f, " ++ q
+          dist = printf pstr d :: String
 
 ---------------------------------------------------------------------
 -- Helper widgets for the cube UI

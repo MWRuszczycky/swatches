@@ -5,7 +5,8 @@ module Resources
 
 import qualified System.Console.GetOpt as Opt
 import qualified Types                 as T
-import Model                                  ( initCube666 )
+import Model                                  ( initCube666
+                                              , readHexCode )
 import Text.Read                              ( readMaybe   )
 import Paths_swatches                         ( version     )
 import Data.Version                           ( showVersion )
@@ -48,12 +49,6 @@ modeUsage :: String
 modeUsage = unlines hs
     where hs = [ "-- Set the display mode with the [MODE] argument\n"
                , "You can display the colors in the following formats:\n"
-               , "  swatches ravel"
-               , "    Display a linearly raveled spectrum together with a test"
-               , "    string, ansi code and nominal hexcode. Hexcodes may not"
-               , "    be correct if colors have been user-defined. Colors are"
-               , "    sorted according to the sort code set with the --sort"
-               , "    option (see below).\n"
                , "  swatches block"
                , "    Display a 16 x 16 block of swatches labeled with ansi"
                , "    codes. Colors are sorted (see below) along the rows then"
@@ -79,7 +74,29 @@ modeUsage = unlines hs
                , "        SHIFT-DOWN: rotate clockwise about x\n"
                , "    Rotations about the x-axis are depth-preserving. So, the"
                , "    visual effect will be different depending on whether you"
-               , "    are near the top or bottom of the cube."
+               , "    are near the top or bottom of the cube.\n"
+               , "  swatches match HEXCODE"
+               , "    Given a color hexcode HEXCODE, display samples of the ten"
+               , "    closest values in the available 256-color RGB space based"
+               , "    on default RGB values. The HEXCODE format must be "
+               , "    compatible with shell reformatting, and letters can be"
+               , "    either uppercase or lowercase. For example, all of the"
+               , "    following will work to match color hexcode #cc715d:\n"
+               , "        swatches match cc715d"
+               , "        swatches match CC715D"
+               , "        swatches match \\#cc715d"
+               , "        swatches match '#cc715d'"
+               , "        swatches match 0xCC715D"
+               , "        ...\n"
+               , "    Some matches may be incorrect if color values have been"
+               , "    redefined from their default values, because only default"
+               , "    RGB values are used to compute distances in RGB space.\n"
+               , "  swatches ravel"
+               , "    Display a linearly raveled spectrum together with a test"
+               , "    string, ansi code and nominal hexcode. Hexcodes may not"
+               , "    be correct if colors have been user-defined. Colors are"
+               , "    sorted according to the sort code set with the --sort"
+               , "    option (see below)."
                ]
 
 stringUsage :: String
@@ -93,7 +110,7 @@ sortUsage :: String
 sortUsage = unlines hs
     where hs = [ "-- Set how the colors should be sorted using the <sort>"
                  ++ " option\n"
-               , "Displayed colors can be sorted according to their *intended*"
+               , "Displayed colors can be sorted according to their *default*"
                , "RGB/HSV values; however, if colors have been redefined, then"
                , "they may not sort correctly. To sort on RGB values, use an"
                , "'rgb' triple in the order you want to sort. For example, to"
@@ -152,17 +169,23 @@ setupDef = T.Setup { T.mode       = T.Ravel
                    , T.info       = Nothing
                    }
 
-setMode :: String -> T.Setup -> T.Setup
-setMode "cube"  st = st { T.mode = T.Cube initCube666 }
-setMode "ravel" st = st { T.mode = T.Ravel            }
-setMode "block" st = st { T.mode = T.Block            }
-setMode _       st = st
+setMatchMode :: T.Setup -> Maybe T.RGB -> Either String T.Setup
+setMatchMode st (Just x) = return st { T.mode = T.Match x }
+setMatchMode st Nothing  = Left errMsg
+    where errMsg = "Bad hexcode to match\nTry: swatches --help"
+
+setMode :: [String] -> T.Setup -> Either String T.Setup
+setMode ("cube" :_ ) st = return st { T.mode = T.Cube initCube666 }
+setMode ("ravel":_ ) st = return st { T.mode = T.Ravel            }
+setMode ("block":_ ) st = return st { T.mode = T.Block            }
+setMode ("match":xs) st = setMatchMode st . readHexCode . concat $ xs
+setMode _            st = return st
 
 getSetup :: [String] -> Either String T.Setup
 getSetup args =
     case Opt.getOpt Opt.Permute options args of
-         ( os, x:_, [] ) -> let st = setMode x . foldl' (flip ($)) setupDef $ os
-                            in  maybe (Right st) (Left . id) . T.info $ st
-         ( os, [] , [] ) -> let st = foldl' (flip ($)) setupDef os
-                            in  maybe (Right st) (Left . id) . T.info $ st
-         ( _ , _  , es ) -> Left . unlines $ es
+         ( os, [], [] ) -> let st = foldl' (flip ($)) setupDef os
+                           in  maybe (return st) (Left . id) . T.info $ st
+         ( os, xs, [] ) -> do st <- setMode xs . foldl' (flip ($)) setupDef $ os
+                              maybe (return st) (Left . id) . T.info $ st
+         ( _ , _ , es ) -> Left . unlines $ es

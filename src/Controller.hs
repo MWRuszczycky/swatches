@@ -22,8 +22,8 @@ type KeyEventRoute e = Vty.Key -> [Vty.Modifier] -> EventRoute e
 
 routeEvent :: T.Setup -> EventRoute e
 routeEvent st = case T.mode st of
-                     T.Cube c   -> cubeEvent c st
-                     otherwise  -> scrollEvent st
+                     T.Cube c  -> cubeEvent c st
+                     otherwise -> scrollEvent st
 
 -- =============================================================== --
 -- Event managers for the cube-mode interface

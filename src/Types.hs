@@ -30,6 +30,7 @@ data Name = Swatches deriving ( Ord, Show, Eq )
 data Mode = Cube RGBCube
           | Ravel
           | Block
+          | Match RGB
           deriving ( Show )
 
 -- |Programmatic State

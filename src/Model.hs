@@ -1,6 +1,8 @@
 module Model
     ( -- utilities
       breakInto
+    , matchColor
+    , readHexCode
     , sortPalette
       -- color palettes
     , palette256
@@ -25,6 +27,7 @@ module Model
 
 import qualified Types as T
 import Types                ( Colorable (..) )
+import Numeric              ( readHex        )
 import Data.List            ( sortOn
                             , transpose      )
 
@@ -73,6 +76,27 @@ sortPalette "grb"  = sortOn ( (\(T.RGB r g b) -> (g,r,b)) . T.rgb )
 sortPalette "gbr"  = sortOn ( (\(T.RGB r g b) -> (g,b,r)) . T.rgb )
 sortPalette "ansi" = sortOn T.code
 sortPalette _      = sortPalette "svh"
+
+readHexCode :: String -> Maybe T.RGB
+readHexCode []       = Nothing
+readHexCode ('#':c)  = readHexCode c
+readHexCode ('x':c)  = readHexCode c
+readHexCode cs
+    | p == "0x"      = readHexCode . drop 2 $ cs
+    | length cs == 6 = fmap foo . mapM (go . readHex) . breakInto 2 $ cs
+    | otherwise      = Nothing
+    where p              = take 2 cs
+          go ((n,""):[]) = Just n
+          go _           = Nothing
+          foo (r:g:b:_)  = T.RGB r g b
+
+colorDistance :: T.RGB -> T.RGB -> Double
+colorDistance (T.RGB r g b) (T.RGB r' g' b') = sqrt . fromIntegral $ d2
+    where d2 = (r - r')^2 + (g - g')^2 + (b - b')^2
+
+matchColor :: T.RGB -> [(T.Color, Double)]
+matchColor c = take 10 . sortOn snd $ [ (x, go x) | x <- palette256 ]
+    where go = colorDistance c . T.rgb
 
 ---------------------------------------------------------------------
 -- HSV conversion

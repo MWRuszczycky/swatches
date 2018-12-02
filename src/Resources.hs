@@ -41,7 +41,7 @@ usage = unlines hs
 
 terminalUsage :: String
 terminalUsage = unlines hs
-    where hs = [ "-- Set the TERM terminal-ID with the <terminal> option\n"
+    where hs = [ "-- Set the TERM terminal-ID with the --terminal option\n"
                , "Set the TERM parameter. The default is xterm-256color."
                ]
 
@@ -101,14 +101,13 @@ modeUsage = unlines hs
 
 stringUsage :: String
 stringUsage = unlines hs
-    where hs = [ "-- Set the test string to display with the <string> option\n"
-               , "Set the string to display in different colors in <ravel>"
-                 ++ " mode."
+    where hs = [ "-- Set the test string to display with the --string option\n"
+               , "Set the string to display in different colors in ravel-mode."
                ]
 
 sortUsage :: String
 sortUsage = unlines hs
-    where hs = [ "-- Set how the colors should be sorted using the <sort>"
+    where hs = [ "-- Set how the colors should be sorted using the --sort"
                  ++ " option\n"
                , "Displayed colors can be sorted according to their *default*"
                , "RGB/HSV values; however, if colors have been redefined, then"
@@ -133,7 +132,7 @@ versionStr = "btx version " ++ showVersion version
 -- State initialization
 
 options :: [ Opt.OptDescr (T.Setup -> T.Setup) ]
-options = [ Opt.Option "" ["terminal"]
+options = [ Opt.Option "t" ["terminal"]
                 ( Opt.ReqArg ( \ arg s -> s { T.terminal = arg } ) "TERM" )
                 "Set the TERM terminal-ID (see below)."
           , Opt.Option "b" ["background"]
@@ -141,10 +140,10 @@ options = [ Opt.Option "" ["terminal"]
                     "CODE" )
                 ( "Set the background color according\n"
                   ++ "to the specified ansi code." )
-          , Opt.Option "" ["string"]
+          , Opt.Option "x" ["string"]
                 ( Opt.ReqArg ( \ arg s -> s { T.string = arg } ) "STRING" )
                 "Set the test string."
-          , Opt.Option "" ["sort"]
+          , Opt.Option "s" ["sort"]
                 ( Opt.ReqArg ( \ arg s -> s { T.sortCode = arg } ) "CODE" )
                 ( "Set the color sort using a sort code\n"
                   ++ "such as 'rgb', 'shv', etc. (see below)." )

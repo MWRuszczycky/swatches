@@ -4,7 +4,7 @@
 
 *Swatches* is a program for looking at all the colors your terminal can display in a variety of different formats. *Swatches* is written entirely in Haskell using [Brick](https://hackage.haskell.org/package/brick), and should run in both Linux and MacOS terminals, but probably not Windows (I've only tested it in Linux). Currently, you can do the following with *Swatches*:
 1. Sort colors according to RGB or HSV values in sequential or blocked displays (see the `--sort` option).
-2. View colors values separated into greyscale, the base 16-palette and a 6x6x6 color cube that you can manipulate in *three* dimensions (see the `cube` mode).
+2. View color values separated into greyscale, the base 16-palette and a 6x6x6 color cube that you can manipulate in *three* dimensions (see the `cube` mode).
 3. Enter a hexcode to find the nearest matches based on the default hexcodes (see the `match` mode).
 
 ## Compiling and installation

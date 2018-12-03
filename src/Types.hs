@@ -36,7 +36,8 @@ data Mode = Cube RGBCube
 -- |Programmatic State
 data Setup = Setup { mode       :: Mode               -- Display mode
                    , terminal   :: String             -- Terminal settings
-                   , background :: Maybe Int          -- Ansi code for backgrnd
+                   , background :: Maybe ColorCode    -- Ansi code for backgrnd
+                   , foreground :: Maybe ColorCode    -- Ansi code for foregrnd
                    , string     :: String             -- Display string
                    , sortCode   :: SortCode           -- Color sorting code
                    , sortDir    :: [Color] -> [Color] -- Sorting direction

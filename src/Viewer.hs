@@ -161,10 +161,19 @@ getVtyColor c
     | c < 256   = Just . Vty.Color240 . fromIntegral $ c - 16
     | otherwise = Nothing
 
+getDefAttr :: Maybe Vty.Color -> Maybe Vty.Color -> Vty.Attr
+getDefAttr Nothing      Nothing      = Vty.defAttr
+getDefAttr (Just fgClr) Nothing      = Vty.withForeColor Vty.defAttr fgClr
+getDefAttr Nothing      (Just bgClr) = Vty.withBackColor Vty.defAttr bgClr
+getDefAttr (Just fgClr) (Just bgClr) = flip Vty.withForeColor fgClr
+                                      . flip Vty.withBackColor bgClr
+                                      $ Vty.defAttr
+
 makeMap :: T.Setup -> B.AttrMap
 makeMap st =
-    let clr    = T.background st >>= getVtyColor
-        dattr  = maybe Vty.defAttr (Vty.withBackColor Vty.defAttr) clr
+    let bgClr  = T.background st >>= getVtyColor
+        fgClr  = T.foreground st >>= getVtyColor
+        dattr  = getDefAttr fgClr bgClr
         fgname = B.attrName . ('f':) . show . T.rgb
         bgname = B.attrName . ('b':) . show . T.rgb
     in  B.attrMap dattr . concat $
@@ -173,5 +182,5 @@ makeMap st =
               -- background color map: prefix hexcode with 'b'
             , [ (bgname c, B.bg . T.color $ c) | c <- palette256 ]
               -- base attributes
-            , [ ("label", Vty.withStyle Vty.defAttr Vty.bold) ]
+            , [ ("label", dattr)]
             ]

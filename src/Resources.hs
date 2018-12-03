@@ -140,6 +140,11 @@ options = [ Opt.Option "t" ["terminal"]
                     "CODE" )
                 ( "Set the background color according\n"
                   ++ "to the specified ansi code." )
+          , Opt.Option "f" ["foreground"]
+                ( Opt.ReqArg ( \ arg s -> s { T.foreground = readMaybe arg } )
+                    "CODE" )
+                ( "Set the foreground color according\n"
+                  ++ "to the specified ansi code." )
           , Opt.Option "x" ["string"]
                 ( Opt.ReqArg ( \ arg s -> s { T.string = arg } ) "STRING" )
                 "Set the test string."
@@ -162,6 +167,7 @@ setupDef :: T.Setup
 setupDef = T.Setup { T.mode       = T.Ravel
                    , T.terminal   = "xterm-256color"
                    , T.background = Nothing
+                   , T.foreground = Nothing
                    , T.string     = "swatches"
                    , T.sortCode   = "svh"
                    , T.sortDir    = reverse

@@ -166,8 +166,8 @@ getDefAttr Nothing      Nothing      = Vty.defAttr
 getDefAttr (Just fgClr) Nothing      = Vty.withForeColor Vty.defAttr fgClr
 getDefAttr Nothing      (Just bgClr) = Vty.withBackColor Vty.defAttr bgClr
 getDefAttr (Just fgClr) (Just bgClr) = flip Vty.withForeColor fgClr
-                                      . flip Vty.withBackColor bgClr
-                                      $ Vty.defAttr
+                                       . flip Vty.withBackColor bgClr
+                                       $ Vty.defAttr
 
 makeMap :: T.Setup -> B.AttrMap
 makeMap st =
@@ -182,5 +182,5 @@ makeMap st =
               -- background color map: prefix hexcode with 'b'
             , [ (bgname c, B.bg . T.color $ c) | c <- palette256 ]
               -- base attributes
-            , [ ("label", dattr)]
+            , [ ("label", dattr) ]
             ]

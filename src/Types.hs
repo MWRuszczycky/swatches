@@ -133,7 +133,7 @@ instance Colorable GreyIntensity where
 data BasicColor = Black | Maroon  | Green | Olive  |
                   Navy  | Purple  | Teal  | Silver |
                   Grey  | Red     | Lime  | Yellow |
-                  Blue  | Fuchsia | Aqua | White
+                  Blue  | Fuchsia | Aqua  | White
                   deriving ( Eq, Show, Enum )
 
 instance Colorable BasicColor where

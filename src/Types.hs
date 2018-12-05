@@ -148,7 +148,7 @@ instance Colorable BasicColor where
               toRGB Teal    = RGB   0 128 128
               toRGB Silver  = RGB 192 192 192
               toRGB Grey    = RGB 128 128 128
-              toRGB Red     = RGB 255   0 255
+              toRGB Red     = RGB 255   0   0
               toRGB Lime    = RGB   0 255   0
               toRGB Yellow  = RGB 255 255   0
               toRGB Blue    = RGB   0   0 255

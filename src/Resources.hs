@@ -126,7 +126,7 @@ sortUsage = unlines hs
 
 
 versionStr :: String
-versionStr = "btx version " ++ showVersion version
+versionStr = "swatches version " ++ showVersion version
 
 ---------------------------------------------------------------------
 -- State initialization

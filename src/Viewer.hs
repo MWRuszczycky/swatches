@@ -10,7 +10,9 @@ import qualified Graphics.Vty         as Vty
 import qualified Brick                as B
 import qualified Brick.Widgets.Center as B
 import Text.Printf                           ( printf       )
+import Data.Ord                              ( comparing    )
 import Data.List                             ( intersperse
+                                             , minimumBy
                                              , intercalate  )
 import Brick                                 ( (<=>), (<+>) )
 import Model                                 ( palette256
@@ -117,16 +119,17 @@ ravelLine s c = B.hBox . intersperse (hSeparator 2) $ ui
                , swatch 3 c
                ]
 
-matchWidget :: String -> [(T.Color, Double)] -> [B.Widget T.Name]
-matchWidget _ []     = []
-matchWidget s (x:xs) = best : rest
-    where best = matchLine s "closest match" x
-          rest = map (matchLine s []) xs
+matchWidget :: String -> [(T.Color, Int)] -> [B.Widget T.Name]
+matchWidget _ [] = []
+matchWidget s xs = map (matchLine s m) xs
+    where m = snd . minimumBy (comparing snd) $ xs
 
-matchLine :: String -> String -> (T.Color, Double) -> B.Widget T.Name
-matchLine s q (c, d) = ravelLine s c <+> B.withAttr "label" (B.str dist)
-    where pstr = " delta RGB = %5.1f, " ++ q
-          dist = printf pstr d :: String
+matchLine :: String -> Int -> (T.Color, Int) -> B.Widget T.Name
+matchLine s m (c, d)
+    | d == m    = ravelLine s c <+> B.withAttr "label" ( B.str dstr0 )
+    | otherwise = ravelLine s c <+> B.withAttr "label" ( B.str dstr  )
+    where dstr  = printf " delta RGB = %3d" d
+          dstr0 = dstr ++ " -- closest"
 
 ---------------------------------------------------------------------
 -- Helper widgets for the cube UI

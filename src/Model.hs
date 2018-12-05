@@ -94,9 +94,9 @@ colorDistance :: T.RGB -> T.RGB -> Double
 colorDistance (T.RGB r g b) (T.RGB r' g' b') = sqrt . fromIntegral $ d2
     where d2 = (r - r')^2 + (g - g')^2 + (b - b')^2
 
-matchColor :: T.RGB -> [(T.Color, Double)]
+matchColor :: T.RGB -> [(T.Color, Int)]
 matchColor c = take 10 . sortOn snd $ [ (x, go x) | x <- palette256 ]
-    where go = colorDistance c . T.rgb
+    where go = round . colorDistance c . T.rgb
 
 ---------------------------------------------------------------------
 -- HSV conversion

@@ -149,10 +149,10 @@ cubeControls = B.withAttr "label" . B.str . intercalate "\n" $ hs
 -- Attributes
 
 colorFG :: T.Color -> B.AttrName
-colorFG = B.attrName . ('f':) . show . T.rgb
+colorFG = B.attrName . ('f':) . show . T.code
 
 colorBG :: T.Color -> B.AttrName
-colorBG = B.attrName . ('b':) . show . T.rgb
+colorBG = B.attrName . ('b':) . show . T.code
 
 getVtyColor :: T.ColorCode -> Maybe Vty.Color
 getVtyColor c
@@ -174,13 +174,13 @@ makeMap st =
     let bgClr  = T.background st >>= getVtyColor
         fgClr  = T.foreground st >>= getVtyColor
         dattr  = getDefAttr fgClr bgClr
-        fgname = B.attrName . ('f':) . show . T.rgb
-        bgname = B.attrName . ('b':) . show . T.rgb
+        fgname = B.attrName . ('f':) . show . T.code
+        bgname = B.attrName . ('b':) . show . T.code
     in  B.attrMap dattr . concat $
             [ -- foreground color map: prefix hexcode with 'f'
               [ (fgname c, B.fg . T.color $ c) | c <- palette256 ]
               -- background color map: prefix hexcode with 'b'
             , [ (bgname c, B.bg . T.color $ c) | c <- palette256 ]
               -- base attributes
-            , [ ("label", dattr) ]
+            , [ ("label", dattr ) ]
             ]

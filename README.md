@@ -24,11 +24,11 @@ You can also sort (descending) the default output format by the hue, saturation 
 
 ### Sort the colors any way you want
 
-The `-s/--sort` option will take any `rgb` or `hsv` triple for sorting. Likewise, you can sort by the ANSI codes using `--sort=ansi` option. For example, if the `-s/--sort` option is not used, the default triple is `svh` (i.e., sort by saturation, then value and finally hue), which gives rainbows of decreasing saturation. All sorts are descending by default; however, you can get ascending sorts by using the `-a` option.
+The `-s/--sort` option will take any `rgb` or `hsv` triple for sorting. Likewise, you can sort by the ANSI codes using `--sort=ansi` option. For example, if the `-s/--sort` option is not used, the default triple is `svh` (i.e., sort by saturation, then value and finally hue), which gives rainbows of decreasing saturation (see `block` example below). All sorts are descending by default; however, you can get ascending sorts by using the `-a` option.
 
 ### View colors in a compact block
 
-The default display takes up a lot of space; however, you can use the `block` mode to display everything more compactly with just the ANSI code and a color swatch. You can sort the colors in this mode too using the `-s/--sort` option; however, the first 16 colors are displayed separately. For example, running `swatches block`, which will use the default `hsv` sort (right-to-left), gives the following output:
+The default display takes up a lot of space; however, you can use the `block` mode to display everything more compactly with just the ANSI code and a color swatch. You can sort the colors in this mode too using the `-s/--sort` option; however, the first 16 colors are displayed separately. For example, running `swatches block`, which will use the default `svh` sort (left-to-right), gives the following output:
 
 ![ravel-rgb](demos/block.png)
 

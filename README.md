@@ -12,7 +12,7 @@ By default, *Swatches* will display the default RGB hexcode, the ANSI code, a co
 
 ![ravel-rgb](demos/ravel_rgb.png)
 
-(Note that the screen has been cropped in this example, and any user-defined colors may have an incorrect hexcode, which are based on the default values.)
+(Note that the screen has been cropped in this example, and any user-defined colors may have an incorrect hexcode, which will be based on the default values (e.g., the ANSI 11 and 15 colors in the above image).)
 
 ### View colors sorted by HSV values
 
@@ -20,7 +20,7 @@ You can also sort (descending) the default output format by the hue, saturation 
 
 ![ravel-rgb](demos/ravel_hsv.png)
 
-(Note that the screen has been cropped in this example, and any user-defined colors may have an incorrect hexcode, which are based on the default values.)
+(Note that the screen has been cropped in this example, and any user-defined colors may have an incorrect hexcode, which will be based on the default values (e.g., the ANSI 9 color in the above image).)
 
 ### Sort the colors any way you want
 
@@ -83,3 +83,4 @@ By default *Swatches* sets the `TERM` environment parameter to `xterm-256color`.
 
 1. Some functions still need commenting.
 2. Add option to change the number of matches displayed rather than the default 10.
+3. See if there is a better way to handle or warn about user-defined colors resulting in incorrect hexcodes.

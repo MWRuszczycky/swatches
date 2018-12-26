@@ -15,7 +15,7 @@ import Viewer                                 ( routeView
                                               , makeMap           )
 
 main :: IO ()
-main = getSetup <$> getArgs >>= either ( putStrLn ) ( runSwatches )
+main = getSetup <$> getArgs >>= either putStrLn runSwatches
 
 runSwatches :: Setup -> IO ()
 runSwatches setup = do

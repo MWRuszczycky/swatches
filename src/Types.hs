@@ -41,8 +41,9 @@ data Setup = Setup { mode       :: Mode               -- Display mode
                    , string     :: String             -- Display string
                    , sortCode   :: SortCode           -- Color sorting code
                    , sortDir    :: [Color] -> [Color] -- Sorting direction
-                   , info       :: Maybe String       -- Info to display to user
-                   }                                  -- (e.g., a help string)
+                   , info       :: Maybe String       -- Info to display
+                   , matchCount :: Int                -- Num of matches to show
+                   }
 
 -- |Code for sorting colors (e.g, rgb, gbr, hsv, svh, etc.)
 type SortCode = String

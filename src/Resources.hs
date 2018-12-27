@@ -132,36 +132,52 @@ versionStr = "swatches version " ++ showVersion version
 -- State initialization
 
 options :: [ Opt.OptDescr (T.Setup -> T.Setup) ]
-options = [ Opt.Option "t" ["terminal"]
-                ( Opt.ReqArg ( \ arg s -> s { T.terminal = arg } ) "TERM" )
-                "Set the TERM terminal-ID (see below)."
-          , Opt.Option "b" ["background"]
-                ( Opt.ReqArg ( \ arg s -> s { T.background = readMaybe arg } )
-                    "CODE" )
-                ( "Set the background color according\n"
-                  ++ "to the specified ansi code." )
-          , Opt.Option "f" ["foreground"]
-                ( Opt.ReqArg ( \ arg s -> s { T.foreground = readMaybe arg } )
-                    "CODE" )
-                ( "Set the foreground color according\n"
-                  ++ "to the specified ansi code." )
-          , Opt.Option "x" ["string"]
-                ( Opt.ReqArg ( \ arg s -> s { T.string = arg } ) "STRING" )
-                "Set the test string."
-          , Opt.Option "s" ["sort"]
-                ( Opt.ReqArg ( \ arg s -> s { T.sortCode = arg } ) "CODE" )
-                ( "Set the color sort using a sort code\n"
-                  ++ "such as 'rgb', 'shv', etc. (see below)." )
-          , Opt.Option "a" ["ascending"]
-                ( Opt.NoArg ( \ s -> s { T.sortDir = id } ) )
-                "Use an ascending color sort\n(default is descending)."
-          , Opt.Option "h" ["help"]
-                ( Opt.NoArg ( \ s -> s { T.info = Just helpStr } ) )
-                "Display usage information."
-          , Opt.Option "v" ["version"]
-                ( Opt.NoArg ( \ s -> s { T.info = Just versionStr } ) )
-                "Display version."
-          ]
+options =
+    [ Opt.Option "t" ["terminal"]
+          ( Opt.ReqArg ( \ arg s -> s { T.terminal = arg } ) "TERM"
+          )
+          "Set the TERM terminal-ID (see below)."
+    , Opt.Option "b" ["background"]
+          ( Opt.ReqArg ( \ arg s -> s { T.background = readMaybe arg } ) "CODE"
+          )
+          "Set the background color according\nto the specified ansi code."
+    , Opt.Option "f" ["foreground"]
+          ( Opt.ReqArg ( \ arg s -> s { T.foreground = readMaybe arg } ) "CODE"
+          )
+          "Set the foreground color according\nto the specified ansi code."
+    , Opt.Option "x" ["string"]
+          ( Opt.ReqArg ( \ arg s -> s { T.string = arg } ) "STRING"
+          )
+          "Set the test string."
+    , Opt.Option "s" ["sort"]
+          ( Opt.ReqArg ( \ arg s -> s { T.sortCode = arg } ) "CODE"
+          )
+          ( "Set the color sort using a sort code\n"
+            ++ "such as 'rgb', 'shv', etc. (see below)."
+          )
+    , Opt.Option "a" ["ascending"]
+          ( Opt.NoArg ( \ s -> s { T.sortDir = id } )
+          )
+          "Use an ascending color sort\n(default is descending)."
+    , Opt.Option "m" ["matches"]
+          ( Opt.ReqArg ( \ arg s -> let go Nothing  = 10
+                                        go (Just x) | x > 0     = x
+                                                    | otherwise = 10
+                                    in  s { T.matchCount = go . readMaybe $ arg
+                                          }
+                       )
+            "NUMBER"
+          )
+          "Number of matches to show (default is 10)."
+    , Opt.Option "h" ["help"]
+          ( Opt.NoArg ( \ s -> s { T.info = Just helpStr } )
+          )
+          "Display usage information."
+    , Opt.Option "v" ["version"]
+          ( Opt.NoArg ( \ s -> s { T.info = Just versionStr } )
+          )
+          "Display version."
+    ]
 
 setupDef :: T.Setup
 setupDef = T.Setup { T.mode       = T.Ravel
@@ -172,6 +188,7 @@ setupDef = T.Setup { T.mode       = T.Ravel
                    , T.sortCode   = "svh"
                    , T.sortDir    = reverse
                    , T.info       = Nothing
+                   , T.matchCount = 10
                    }
 
 setMatchMode :: T.Setup -> Maybe T.RGB -> Either String T.Setup

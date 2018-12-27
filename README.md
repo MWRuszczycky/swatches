@@ -34,7 +34,7 @@ The default display takes up a lot of space; however, you can use the `block` mo
 
 ### Find best hexcode matches
 
-If you know the hexcode of the color you want, then you can try to find the ten closest matches available based on the default hexcodes of the 256 terminal colors. For example, if you want to match the light-blue color `#4ab4ff`, then try `swatches match 4ab4ff`, and if you want to match the orange color `#ffb852`, then try `swatches match ffb852`, to get:
+If you know the hexcode of the color you want, then you can try to find the closest matches available based on the default hexcodes of the 256 terminal colors. For example, if you want to match the light-blue color `#4ab4ff`, then try `swatches match 4ab4ff`, and if you want to match the orange color `#ffb852`, then try `swatches match ffb852`, to get:
 
 ![matches](demos/matches.png)
 
@@ -81,6 +81,5 @@ By default *Swatches* sets the `TERM` environment parameter to `xterm-256color`.
 
 ## To do
 
-1. Some functions still need commenting.
-2. Add option to change the number of matches displayed rather than the default 10.
-3. See if there is a better way to handle or warn about user-defined colors resulting in incorrect hexcodes.
+* Some functions still need commenting.
+* See if there is a better way to handle or warn about user-defined colors resulting in incorrect hexcodes.

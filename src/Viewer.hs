@@ -74,11 +74,12 @@ cubeUI (T.RGBCube _ x _) =
           <=> cubeControls ]
 
 matchUI :: T.RGB -> T.Setup -> [ B.Widget T.Name ]
-matchUI c st = [ B.viewport T.Swatches B.Both $ twid <=> query <=> ui ]
-    where tstr  = "matches may be incorrect for user-defined colors"
-          twid  = B.withAttr "label" . B.str $ tstr
-          query = B.withAttr "label" . B.str $ "query: " ++ show c
-          ui    = B.vBox . matchWidget (T.string st) . matchColor $ c
+matchUI c st = [ B.viewport T.Swatches B.Both $ warningWgt <=> query <=> ui ]
+    where warningStr = "matches may be incorrect for user-defined colors"
+          warningWgt = B.withAttr "label" . B.str $ warningStr
+          query      = B.withAttr "label" . B.str $ "query: " ++ show c
+          ui         = B.vBox . matchWidget (T.string st)
+                              . matchColor (T.matchCount st) $ c
 
 -- =============================================================== --
 -- widgets

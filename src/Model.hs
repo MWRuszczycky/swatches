@@ -61,21 +61,26 @@ breakInto _ [] = []
 breakInto n xs = ps : breakInto n ss
     where (ps, ss) = splitAt n xs
 
+tfst :: (a,b,c) -> a
+tfst (x,_,_) = x
+
+tsnd :: (a,b,c) -> b
+tsnd (_,y,_) = y
+
+tthd :: (a,b,c) -> c
+tthd (_,_,z) = z
+
 sortPalette :: T.SortCode -> T.Palette -> T.Palette
-sortPalette "hsv"  = sortOn ( rgbToHSV . T.rgb )
-sortPalette "hvs"  = sortOn ( (\(h,s,v) -> (h,v,s)) . rgbToHSV . T.rgb )
-sortPalette "shv"  = sortOn ( (\(h,s,v) -> (s,h,v)) . rgbToHSV . T.rgb )
-sortPalette "svh"  = sortOn ( (\(h,s,v) -> (s,v,h)) . rgbToHSV . T.rgb )
-sortPalette "vsh"  = sortOn ( (\(h,s,v) -> (v,s,h)) . rgbToHSV . T.rgb )
-sortPalette "vhs"  = sortOn ( (\(h,s,v) -> (v,h,s)) . rgbToHSV . T.rgb )
-sortPalette "rgb"  = sortOn ( (\(T.RGB r g b) -> (r,g,b)) . T.rgb )
-sortPalette "rbg"  = sortOn ( (\(T.RGB r g b) -> (r,b,g)) . T.rgb )
-sortPalette "brg"  = sortOn ( (\(T.RGB r g b) -> (b,r,g)) . T.rgb )
-sortPalette "bgr"  = sortOn ( (\(T.RGB r g b) -> (b,g,r)) . T.rgb )
-sortPalette "grb"  = sortOn ( (\(T.RGB r g b) -> (g,r,b)) . T.rgb )
-sortPalette "gbr"  = sortOn ( (\(T.RGB r g b) -> (g,b,r)) . T.rgb )
-sortPalette "ansi" = sortOn T.code
-sortPalette _      = sortPalette "svh"
+sortPalette "ansi" p = sortOn T.code p
+sortPalette code   p = go (reverse code) p
+    where go []       p = p
+          go ('h':xs) p = go xs . sortOn ( tfst . rgbToHSV . T.rgb ) $ p
+          go ('s':xs) p = go xs . sortOn ( tsnd . rgbToHSV . T.rgb ) $ p
+          go ('v':xs) p = go xs . sortOn ( tthd . rgbToHSV . T.rgb ) $ p
+          go ('r':xs) p = go xs . sortOn ( T.red   . T.rgb         ) $ p
+          go ('g':xs) p = go xs . sortOn ( T.green . T.rgb         ) $ p
+          go ('b':xs) p = go xs . sortOn ( T.blue  . T.rgb         ) $ p
+          go (_  :xs) p = go xs p
 
 readHexCode :: String -> Maybe T.RGB
 readHexCode []       = Nothing

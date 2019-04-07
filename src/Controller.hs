@@ -51,18 +51,22 @@ moveCube _          _              = id
 
 scrollEvent :: T.Setup -> EventRoute e
 -- ^Scrolling always works as expected with the arrow keys. Character
--- keys can also be used for scrolling; however, right now they are
--- are based on the Dvorak keyboard. This will be changed later.
+-- keys can also be used for scrolling. Scrolling should work for
+-- both Dvorak and Querty keyboards.
 scrollEvent st ( B.VtyEvent ( Vty.EvKey k [] ) ) =
     case k of
-         Vty.KUp       -> B.vScrollBy vpScroll (-1) >> B.continue st
-         Vty.KDown     -> B.vScrollBy vpScroll 1    >> B.continue st
-         Vty.KRight    -> B.hScrollBy vpScroll 1    >> B.continue st
-         Vty.KLeft     -> B.hScrollBy vpScroll (-1) >> B.continue st
-         Vty.KChar 'k' -> B.vScrollBy vpScroll (-1) >> B.continue st
-         Vty.KChar 'j' -> B.vScrollBy vpScroll 1    >> B.continue st
-         Vty.KChar 'h' -> B.hScrollBy vpScroll (-1) >> B.continue st
-         Vty.KChar 't' -> B.hScrollBy vpScroll 1    >> B.continue st
-         otherwise -> B.halt st
+         Vty.KUp       -> B.vScrollBy   vpScroll (-1)   >> B.continue st
+         Vty.KDown     -> B.vScrollBy   vpScroll ( 1)   >> B.continue st
+         Vty.KRight    -> B.hScrollBy   vpScroll ( 1)   >> B.continue st
+         Vty.KLeft     -> B.hScrollBy   vpScroll (-1)   >> B.continue st
+         Vty.KChar 'k' -> B.vScrollBy   vpScroll (-1)   >> B.continue st
+         Vty.KChar 'j' -> B.vScrollBy   vpScroll ( 1)   >> B.continue st
+         Vty.KChar 'h' -> B.hScrollBy   vpScroll (-1)   >> B.continue st
+         Vty.KChar 't' -> B.hScrollBy   vpScroll ( 1)   >> B.continue st
+         Vty.KChar 'l' -> B.hScrollBy   vpScroll ( 1)   >> B.continue st
+         Vty.KChar 'd' -> B.hScrollBy   vpScroll (-1)   >> B.continue st
+         Vty.KPageUp   -> B.vScrollPage vpScroll B.Up   >> B.continue st
+         Vty.KPageDown -> B.vScrollPage vpScroll B.Down >> B.continue st
+         otherwise     -> B.halt st
     where vpScroll = B.viewportScroll T.Swatches
 scrollEvent st _ = B.halt st

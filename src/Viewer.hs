@@ -38,9 +38,9 @@ routeView st = case T.mode st of
 
 ravelUI :: T.Setup-> [ B.Widget T.Name ]
 ravelUI st =
-    let go    = T.sortDir st . sortPalette (T.sortCode st)
-        cols  = breakInto 64 . map ( ravelLine (T.string st) ) . go $ palette256
-        ui    = intersperse (hSeparator 3) . map B.vBox $ cols
+    let ui240 = T.sortDir st . sortPalette (T.sortCode st) $ palette240
+        wgts  = map ( ravelLine (T.string st) ) $ palette16 ++ ui240
+        ui    = intersperse (hSeparator 3) . map B.vBox . breakInto 64 $ wgts
         note  = "hexcodes may be incorrect for user-defined colors"
         title = B.withAttr "label" . B.str $ note
     in  [ B.viewport T.Swatches B.Both $ title <=> B.hBox ui ]

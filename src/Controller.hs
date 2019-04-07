@@ -18,12 +18,11 @@ import Model                         ( moveZneg
 -- Helper types and main router
 
 type EventRoute e = B.BrickEvent T.Name e -> B.EventM T.Name ( B.Next T.Setup )
-type KeyEventRoute e = Vty.Key -> [Vty.Modifier] -> EventRoute e
 
 routeEvent :: T.Setup -> EventRoute e
 routeEvent st = case T.mode st of
                      T.Cube c  -> cubeEvent c st
-                     otherwise -> scrollEvent st
+                     _         -> scrollEvent st
 
 -- =============================================================== --
 -- Event managers for the cube-mode interface
@@ -67,6 +66,6 @@ scrollEvent st ( B.VtyEvent ( Vty.EvKey k [] ) ) =
          Vty.KChar 'd' -> B.hScrollBy   vpScroll (-1)   >> B.continue st
          Vty.KPageUp   -> B.vScrollPage vpScroll B.Up   >> B.continue st
          Vty.KPageDown -> B.vScrollPage vpScroll B.Down >> B.continue st
-         otherwise     -> B.halt st
+         _             -> B.halt st
     where vpScroll = B.viewportScroll T.Swatches
 scrollEvent st _ = B.halt st

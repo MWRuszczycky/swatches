@@ -5,8 +5,7 @@ import System.Posix.Env                       ( putEnv            )
 import System.Environment                     ( getArgs           )
 import Brick                                  ( App (..)
                                               , neverShowCursor
-                                              , defaultMain
-                                              , Widget            )
+                                              , defaultMain       )
 import Types                                  ( Name  (..)
                                               , Setup (..)        )
 import Resources                              ( getSetup          )

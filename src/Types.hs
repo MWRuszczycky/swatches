@@ -3,19 +3,19 @@ module Types
       Mode             (..)
     , Name             (..)
     , Setup            (..)
-    , SortCode         (..)
+    , SortCode
     -- Color
     , BasicColor       (..)
     , ChannelIntensity (..)
     , Color            (..)
     , Colorable        (..) -- Class
-    , ColorCode        (..)
+    , ColorCode
     , GreyIntensity    (..)
-    , Palette          (..)
+    , Palette
     , RGB              (..)
     , RGBColor         (..)
     , RGBCube          (..)
-    , RGBPlane         (..)
+    , RGBPlane
     ) where
 
 import qualified Graphics.Vty as Vty

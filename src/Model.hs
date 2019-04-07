@@ -61,26 +61,17 @@ breakInto _ [] = []
 breakInto n xs = ps : breakInto n ss
     where (ps, ss) = splitAt n xs
 
-tfst :: (a,b,c) -> a
-tfst (x,_,_) = x
-
-tsnd :: (a,b,c) -> b
-tsnd (_,y,_) = y
-
-tthd :: (a,b,c) -> c
-tthd (_,_,z) = z
-
 sortPalette :: T.SortCode -> T.Palette -> T.Palette
-sortPalette "ansi" p = sortOn T.code p
-sortPalette code   p = go (reverse code) p
-    where go []       p = p
-          go ('h':xs) p = go xs . sortOn ( tfst . rgbToHSV . T.rgb ) $ p
-          go ('s':xs) p = go xs . sortOn ( tsnd . rgbToHSV . T.rgb ) $ p
-          go ('v':xs) p = go xs . sortOn ( tthd . rgbToHSV . T.rgb ) $ p
-          go ('r':xs) p = go xs . sortOn ( T.red   . T.rgb         ) $ p
-          go ('g':xs) p = go xs . sortOn ( T.green . T.rgb         ) $ p
-          go ('b':xs) p = go xs . sortOn ( T.blue  . T.rgb         ) $ p
-          go (_  :xs) p = go xs p
+sortPalette "ansi"= sortOn T.code
+sortPalette code  = go (reverse code)
+    where go []        = id
+          go ('h':xs)  = go xs . sortOn ( (\(h,_,_) -> h) . rgbToHSV . T.rgb )
+          go ('s':xs)  = go xs . sortOn ( (\(_,s,_) -> s) . rgbToHSV . T.rgb )
+          go ('v':xs)  = go xs . sortOn ( (\(_,_,v) -> v) . rgbToHSV . T.rgb )
+          go ('r':xs)  = go xs . sortOn ( T.red   . T.rgb                    )
+          go ('g':xs)  = go xs . sortOn ( T.green . T.rgb                    )
+          go ('b':xs)  = go xs . sortOn ( T.blue  . T.rgb                    )
+          go (_  :xs)  = go xs
 
 readHexCode :: String -> Maybe T.RGB
 readHexCode []       = Nothing
@@ -93,7 +84,7 @@ readHexCode cs
     where p              = take 2 cs
           go ((n,""):[]) = Just n
           go _           = Nothing
-          foo (r:g:b:_)  = T.RGB r g b
+          foo ~(r:g:b:_) = T.RGB r g b -- should always match given above guard
 
 colorDistance :: T.RGB -> T.RGB -> Double
 colorDistance (T.RGB r g b) (T.RGB r' g' b') = sqrt . fromIntegral $ d2

@@ -21,9 +21,7 @@ import Model                                 ( palette256
                                              , palette16
                                              , breakInto
                                              , matchColor
-                                             , sortPalette
-                                             , value
-                                             , rgbToHSV     )
+                                             , sortPalette  )
 
 -- =============================================================== --
 -- Interfaces and central router
@@ -34,7 +32,7 @@ routeView st = case T.mode st of
                     T.Block   -> blockUI st
                     T.Cube c  -> cubeUI  c
                     T.Match x -> matchUI x st
-                    otherwise -> ravelUI st
+                    _         -> ravelUI st
 
 ravelUI :: T.Setup-> [ B.Widget T.Name ]
 ravelUI st =

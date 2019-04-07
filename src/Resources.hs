@@ -202,7 +202,7 @@ setupDef = T.Setup { T.mode       = T.Ravel
 
 setMatchMode :: T.Setup -> Maybe T.RGB -> Either String T.Setup
 setMatchMode st (Just x) = return st { T.mode = T.Match x }
-setMatchMode st Nothing  = Left errMsg
+setMatchMode _  Nothing  = Left errMsg
     where errMsg = "Bad hexcode to match\nTry: swatches --help"
 
 setMode :: [String] -> T.Setup -> Either String T.Setup

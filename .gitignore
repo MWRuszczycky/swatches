@@ -2,3 +2,5 @@
 utl/
 demos/raw/
 demos/gimp/
+*.nix
+result

@@ -24,7 +24,7 @@ You can also sort (descending) the default output format by the hue, saturation 
 
 ### Sort the colors any way you want
 
-The `-s/--sort` option will take any `rgb` or `hsv` triple for sorting. Likewise, you can sort by the ANSI codes using `--sort=ansi` option. For example, if the `-s/--sort` option is not used, the default triple is `svh` (i.e., sort by saturation, then value and finally hue), which gives rainbows of decreasing saturation (see `block` example below). All sorts are descending by default; however, you can get ascending sorts by using the `-a` option.
+The `-s/--sort` option will take any combination of `hsvrgb` for sorting by hue, saturation, value, red channel, green channel or blue channel, respectively. Likewise, you can sort by the ANSI codes using `--sort=ansi` option. For example, if the `-s/--sort` option is not used, the default triple is `svh` (i.e., sort by saturation, then value and finally hue), which gives rainbows of decreasing saturation (see `block` example below). Alternatively, the sort code `rh` will sort by the red channel and then the hue. All sorts are descending by default; however, you can get ascending sorts by using the `-a` option.
 
 ### View colors in a compact block
 

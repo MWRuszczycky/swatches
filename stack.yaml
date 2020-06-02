@@ -1,5 +1,5 @@
 # swatches stack.yaml
-resolver: lts-12.26
+resolver: lts-14.20
 
 packages:
 - .

@@ -4,3 +4,4 @@ demos/raw/
 demos/gimp/
 *.nix
 result
+stack.yaml.lock
